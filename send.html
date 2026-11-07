@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<!-- connect-src holds only the server's two addresses. There is deliberately no file field on this page: it can
+     send only what the blanking page handed over. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src https://script.google.com/macros/s/AKfycbyGhnnzfXejxpYZVzX2U9uykm526udYM6G5hJUnQsLePHbiMElV_Y1z8CuSsRdPqZ1sxA/exec https://script.googleusercontent.com/macros/echo; img-src 'self'; form-action 'none'; base-uri 'none'">
+<title>שליחת התלוש</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<section class="draft">אתר ניסיון של המפעיל. לא לשימוש של מורות. הנוסח עוד לא אושר בידי עורך דין, והאתר יורד בסוף הניסיון.</section>
+<header>
+  <h1>שליחת התלוש</h1>
+  <p>נשלח רק הקובץ בלי הפרטים המזהים, מוצפן. בלי שם, בלי מייל ובלי טלפון.</p>
+</header>
+<main>
+  <section id="missing" hidden>
+    <h2 id="missing-title"></h2>
+    <p id="missing-text"></p>
+    <p><a id="missing-link" href="blank.html"></a></p>
+  </section>
+
+  <section id="step-code" hidden>
+    <h2>1. שמרי את קישור הדוח</h2>
+    <p>בקישור הזה תפתחי את הדוח כשיהיה מוכן. <strong>זו הדרך היחידה להגיע אליו.</strong> אנחנו לא יודעים של מי הדוח, ולכן לא נוכל לשלוח אותו שוב או לשחזר את הקישור.</p>
+    <p class="link-box" id="link" dir="ltr"></p>
+    <div class="actions">
+      <a class="button" id="by-mail" href="#">שלחי לעצמי במייל</a>
+      <a class="button" id="by-sms" href="#">שלחי לעצמי בהודעה</a>
+      <button id="share" type="button" hidden>שיתוף</button>
+      <button id="copy" type="button">העתקה</button>
+      <button id="download" type="button">הורדה</button>
+    </div>
+    <p id="copied" role="status" aria-live="polite"></p>
+    <canvas id="qr" class="qr" role="img" aria-label="קוד QR של קישור הדוח"></canvas>
+    <p class="hint">אפשר לצלם את הקוד בטלפון ולשמור אותו.</p>
+    <label class="check"><input type="checkbox" id="saved"> שמרתי את הקישור</label>
+  </section>
+
+  <section id="step-send" hidden>
+    <h2>2. שליחה</h2>
+    <p id="summary"></p>
+    <button id="send" type="button" disabled>הצפנה ושליחה</button>
+    <progress id="progress" value="0" max="1" hidden></progress>
+    <p id="status" role="status" aria-live="polite"></p>
+    <button id="retry" type="button" hidden>נסי שוב</button>
+  </section>
+
+  <section id="done" hidden>
+    <h2>נשלח</h2>
+    <p>הקובץ התקבל. הדוח יהיה מוכן בתוך כמה ימים. כדי לראות אותו, היכנסי דרך הקישור ששמרת.</p>
+  </section>
+</main>
+<script src="config.js"></script>
+<script src="api.js"></script>
+<script src="crypto-box.js"></script>
+<script src="handoff.js"></script>
+<script src="vendor/qrcode.js"></script>
+<script src="qr-draw.js"></script>
+<script src="send.js"></script>
+</body>
+</html>

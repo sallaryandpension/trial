@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src https://script.google.com/macros/s/AKfycbyGhnnzfXejxpYZVzX2U9uykm526udYM6G5hJUnQsLePHbiMElV_Y1z8CuSsRdPqZ1sxA/exec https://script.googleusercontent.com/macros/echo; img-src 'self'; form-action 'none'; base-uri 'none'">
+<title>רישום לבדיקת תלוש</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<section class="draft">אתר ניסיון של המפעיל. לא לשימוש של מורות. הנוסח עוד לא אושר בידי עורך דין, והאתר יורד בסוף הניסיון.</section>
+<header>
+  <h1>רישום לבדיקת תלוש</h1>
+  <p>נרשמים כאן, ומקבלים קוד כניסה ב-SMS. לא שולחים כאן תלוש.</p>
+</header>
+<main>
+  <section id="draft" class="draft" hidden>טיוטה: הנוסח עוד לא אושר בידי עורך דין. עמוד לבדיקה בלבד, לא לשימוש של מורות.</section>
+  <section id="form">
+    <div class="notice consent" id="notice"></div>
+    <div class="fields">
+      <label>שם
+        <input type="text" id="name" autocomplete="name" maxlength="100">
+      </label>
+      <label>מייל
+        <input type="email" id="email" dir="ltr" autocomplete="email" maxlength="254">
+      </label>
+      <label>טלפון נייד
+        <input type="tel" id="phone" dir="ltr" autocomplete="tel" inputmode="numeric" maxlength="14">
+      </label>
+      <label>טלפון נייד שוב
+        <input type="tel" id="phone2" dir="ltr" autocomplete="off" inputmode="numeric" maxlength="14">
+      </label>
+      <div class="trap" aria-hidden="true">
+        <label>אתר
+          <input type="text" id="website" tabindex="-1" autocomplete="off">
+        </label>
+      </div>
+    </div>
+    <label class="check"><input type="checkbox" id="consent-data"> <span id="consent-data-text"></span></label>
+    <label class="check"><input type="checkbox" id="consent-ai"> <span id="consent-ai-text"></span></label>
+    <button id="submit" type="button" disabled>שליחה</button>
+    <p id="status" role="status" aria-live="polite"></p>
+  </section>
+  <section id="done" hidden>
+    <h2>קיבלנו</h2>
+    <p>קוד כניסה יישלח אליך ב-SMS. כשיגיע, אפשר <a href="index.html">להיכנס כאן</a>.</p>
+  </section>
+</main>
+<script src="config.js"></script>
+<script src="api.js"></script>
+<script src="consent.js"></script>
+<script src="register.js"></script>
+</body>
+</html>

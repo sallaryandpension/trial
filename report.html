@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- The key sits after the # and is never sent. no-referrer keeps the address out of any other request. -->
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src https://script.google.com/macros/s/AKfycbyGhnnzfXejxpYZVzX2U9uykm526udYM6G5hJUnQsLePHbiMElV_Y1z8CuSsRdPqZ1sxA/exec https://script.googleusercontent.com/macros/echo; img-src 'self'; form-action 'none'; base-uri 'none'">
+<title>קבלת הדוח</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<section class="draft">אתר ניסיון של המפעיל. לא לשימוש של מורות. הנוסח עוד לא אושר בידי עורך דין, והאתר יורד בסוף הניסיון.</section>
+<header>
+  <h1>קבלת הדוח</h1>
+  <p>הדוח נפתח כאן, במחשב שלך. המפתח שבקישור לא נשלח לשום מקום.</p>
+</header>
+<main>
+  <section id="ask" hidden>
+    <h2>הדביקי את הקישור ששמרת</h2>
+    <label>קישור הדוח
+      <input type="text" id="code" dir="ltr" autocomplete="off">
+    </label>
+    <button id="open" type="button">פתיחה</button>
+  </section>
+  <section>
+    <p id="status" role="status" aria-live="polite"></p>
+    <a class="button" id="save" hidden>הורדת הדוח</a>
+    <button id="again" type="button" hidden>בדיקה נוספת</button>
+    <p class="hint" id="scope" hidden>הדוח הוא דוח ממצאים. הוא לא ייעוץ משפטי או פנסיוני, והוא עלול לטעות ולפספס דברים. פרטים בראש הדוח.</p>
+  </section>
+</main>
+<script src="config.js"></script>
+<script src="api.js"></script>
+<script src="crypto-box.js"></script>
+<script src="report.js"></script>
+</body>
+</html>

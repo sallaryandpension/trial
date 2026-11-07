@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- connect-src 'none' stays on this page for good. tools/build_site.py refuses to build without it. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; worker-src 'self' blob:; style-src 'self'; connect-src 'none'; img-src 'self' data: blob:; font-src 'none'; form-action 'none'; base-uri 'none'">
+<title>תלוש בלי פרטים מזהים</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<section class="draft">אתר ניסיון של המפעיל. לא לשימוש של מורות. הנוסח עוד לא אושר בידי עורך דין, והאתר יורד בסוף הניסיון.</section>
+<header>
+  <h1>תלוש בלי פרטים מזהים</h1>
+  <p>העמוד יוצר PDF חדש, והאזורים המזהים בו ריקים. <strong>הקובץ המקורי לא נשלח לשום מקום.</strong></p>
+</header>
+<main>
+  <section>
+    <h2>1. בחרי תלוש</h2>
+    <p class="hint">גרסת ניסיון: תומך כרגע רק בתלוש שנשמר בהדפסה ל-PDF. כל עמוד שלא תואם לתבנית נדחה.</p>
+    <input type="file" id="pdf" accept="application/pdf">
+    <p id="status" role="status" aria-live="polite"></p>
+  </section>
+  <section id="results" hidden>
+    <h2>2. בדקי את התוצאה</h2>
+    <div class="notice">
+      <p><strong>חשוב:</strong> עברי על העמודים ובדקי שלא נשאר שם, מספר זהות, כתובת, בנק או שם בית ספר. הסכומים נשארים כמו שהם, ולכן גם אחרי המחיקה ייתכן שאפשר לזהות אדם לפי השכר. אי אפשר להבטיח אנונימיות מלאה.</p>
+    </div>
+    <p class="hint" id="sample-note"></p>
+    <button id="show-all" type="button" hidden>הצגת כל העמודים</button>
+    <div id="pages"></div>
+    <label class="check"><input type="checkbox" id="confirm"> <span id="confirm-text">בדקתי את כל העמודים</span></label>
+    <div class="actions">
+      <button id="next" type="button" disabled hidden>המשך לשליחה</button>
+      <button id="save" type="button" disabled>שמירת הקובץ החדש במחשב</button>
+    </div>
+  </section>
+</main>
+<script src="vendor/pdf.min.js"></script>
+<script src="blank-zones.js"></script>
+<script src="blank-pdf.js"></script>
+<script src="split.js"></script>
+<script src="handoff.js"></script>
+<script src="blank-app.js"></script>
+</body>
+</html>
