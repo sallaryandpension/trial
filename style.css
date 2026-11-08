@@ -161,6 +161,13 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   outline: 3px solid var(--brand-ring); outline-offset: 2px;
 }
 
+/* A short line with a link to the next step, such as "already have a code?" on the registration page. */
+section.shortcut { padding: 14px 20px; }
+section.shortcut p { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin: 0; }
+section.shortcut a.button { margin-top: 0; min-height: 42px; padding: 8px 18px; }
+a.button.secondary { background: #fff; color: var(--brand); }
+a.button.secondary:hover { background: var(--brand-soft); color: var(--brand-dark); }
+
 /* Send and report pages. */
 .link-box {
   background: #f1f5f7; border: 1.5px dashed var(--line-strong); border-radius: var(--radius-sm); padding: 12px 14px;
