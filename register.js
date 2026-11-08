@@ -5,7 +5,6 @@
   const C = global.CONSENT;
   const digits = (text) => text.replace(/\D/g, "");
   const validPhone = (text) => /^05\d{8}$/.test(digits(text));
-  const validEmail = (text) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(text.trim());
 
   function say(text, error) {
     $("status").textContent = text;
@@ -38,7 +37,6 @@
 
   function problem() {
     if (!$("name").value.trim()) return "חסר שם.";
-    if (!validEmail($("email").value)) return "כתובת המייל לא נראית תקינה.";
     if (!validPhone($("phone").value)) return "מספר הטלפון לא נראה כמו נייד ישראלי.";
     if (digits($("phone").value) !== digits($("phone2").value)) return "שני מספרי הטלפון לא זהים.";
     return "";
@@ -51,7 +49,7 @@
     say("שולחים...");
     try {
       const reply = await global.Api.call("register", {
-        name: $("name").value.trim(), email: $("email").value.trim(), phone: digits($("phone").value),
+        name: $("name").value.trim(), phone: digits($("phone").value),
         consentVersion: C.version, consentData: $("consent-data").checked, consentAi: !!C.consentAi && $("consent-ai").checked,
         website: $("website").value,
       });

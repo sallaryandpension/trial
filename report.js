@@ -37,6 +37,8 @@
       save.download = "דוח_בדיקת_תלוש.pdf";
       save.hidden = false;
       $("scope").hidden = false;
+      $("erase").href = `delete.html#${code.caseId}.${code.reportKey}`;  // The key stays after the #, in this browser.
+      $("erase-note").hidden = false;
       $("ask").hidden = true;
       say("הדוח מוכן.");
     } catch (e) {

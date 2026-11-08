@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- A report link pasted here carries the key after the #. Only the case number, before the dot, is sent. -->
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src https://script.google.com/macros/s/AKfycbyGhnnzfXejxpYZVzX2U9uykm526udYM6G5hJUnQsLePHbiMElV_Y1z8CuSsRdPqZ1sxA/exec https://script.googleusercontent.com/macros/echo; img-src 'self'; form-action 'none'; base-uri 'none'">
+<title>מחיקה ובקשות</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<section class="draft">אתר ניסיון של המפעיל. לא לשימוש של מורות. הנוסח עוד לא אושר בידי עורך דין, והאתר יורד בסוף הניסיון.</section>
+<header>
+  <h1>מחיקה ובקשות</h1>
+  <p>אפשר למחוק את התלוש והדוח בעצמך, או לבקש מאיתנו לטפל בפרטי הרישום.</p>
+</header>
+<main>
+  <section>
+    <h2>מחיקת התלוש והדוח, עכשיו</h2>
+    <p>הדביקי את קישור הדוח ששמרת. התלוש בלי הפרטים המזהים והדוח יימחקו מיד, ואי אפשר יהיה לשחזר אותם. נשלח רק מספר התיק, החלק שלפני הנקודה. המפתח שבקישור לא נשלח.</p>
+    <label>קישור הדוח
+      <input type="text" id="link" dir="ltr" autocomplete="off">
+    </label>
+    <label class="check"><input type="checkbox" id="sure"> אני מבינה שאחרי המחיקה לא אוכל לפתוח את הדוח</label>
+    <button id="delete" type="button" disabled>מחיקה</button>
+    <p id="delete-status" role="status" aria-live="polite"></p>
+  </section>
+
+  <section>
+    <h2>בקשה על פרטי הרישום, או פנייה אחרת</h2>
+    <p>לפרטי הרישום (שם וטלפון) אין קשר לתלוש, ולכן מטפלים בהם בנפרד. נשלח לך SMS למספר הזה כדי לוודא שהבקשה ממך, ורק אז נטפל בה. נענה בתוך 30 ימים, ובפנייה בנושא נגישות בתוך 7 ימים. לא כותבים כאן פרטים נוספים: נחזור אלייך ב-SMS.</p>
+    <label>מה לעשות
+      <select id="type">
+        <option value="delete">למחוק את פרטי הרישום שלי</option>
+        <option value="view">לראות איזה מידע יש עליי</option>
+        <option value="correct">לתקן פרטים</option>
+        <option value="help">פנייה אחרת: נגישות, קוד חדש, שאלה</option>
+      </select>
+    </label>
+    <div class="fields">
+      <label>טלפון נייד שאיתו נרשמת
+        <input type="tel" id="phone" dir="ltr" autocomplete="tel" inputmode="numeric" maxlength="14">
+      </label>
+      <div class="trap" aria-hidden="true">
+        <label>אתר
+          <input type="text" id="website" tabindex="-1" autocomplete="off">
+        </label>
+      </div>
+    </div>
+    <button id="request" type="button">שליחת הבקשה</button>
+    <p id="request-status" role="status" aria-live="polite"></p>
+  </section>
+  <p class="footer-links"><a href="index.html">עמוד הכניסה</a> · <a href="privacy.html">אבטחה ופרטיות</a> · <a href="terms.html">תנאי שימוש</a> · <a href="accessibility.html">הצהרת נגישות</a></p>
+</main>
+<script src="config.js"></script>
+<script src="api.js"></script>
+<script src="crypto-box.js"></script>
+<script src="delete.js"></script>
+</body>
+</html>
