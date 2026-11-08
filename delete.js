@@ -60,6 +60,7 @@
     global.history.replaceState(null, "", global.location.pathname);
   }
   $("sure").addEventListener("change", () => { $("delete").disabled = !$("sure").checked; });
+  $("delete").disabled = !$("sure").checked;  // A browser may restore the tick on Back, without a change event.
   $("delete").addEventListener("click", deleteCase);
   $("request").addEventListener("click", sendRequest);
 })(window);
