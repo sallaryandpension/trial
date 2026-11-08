@@ -46,6 +46,11 @@ ol.stepper li + li::after { /* The line to the previous step, which in right-to-
   content: ""; position: absolute; top: 15px; inset-inline-end: calc(50% + 18px); width: calc(100% - 30px);
   height: 2px; background: rgba(255, 255, 255, .3);
 }
+ol.stepper li a { color: inherit; text-decoration: none; }
+ol.stepper li a::after { content: ""; position: absolute; inset: 0; z-index: 2; } /* The whole step, circle too, is the link. */
+ol.stepper li:has(a):hover { color: #fff; }
+ol.stepper li:has(a):hover::before { border-color: #fff; }
+ol.stepper li a:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
 ol.stepper li.done { color: rgba(255, 255, 255, .9); }
 ol.stepper li.done::before { content: "✓"; background: rgba(255, 255, 255, .18); border-color: rgba(255, 255, 255, .8); }
 ol.stepper li[aria-current="step"] { color: #fff; font-weight: 650; }
