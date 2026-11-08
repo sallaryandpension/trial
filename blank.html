@@ -18,13 +18,14 @@
   <ol class="stepper" aria-label="שלבי הבדיקה"><li class="done"><a href="register.html">הרשמה</a></li><li class="done"><a href="index.html">כניסה</a></li><li aria-current="step">ריקון התלוש</li><li>שליחה</li><li>הדוח</li></ol>
 </header>
 <main>
+  <p class="back-link"><a href="index.html">→ חזרה לכניסה</a></p>
   <section>
     <h2>1. בחרי תלוש</h2>
     <p class="hint">גרסת ניסיון: תומך כרגע רק בתלוש שנשמר בהדפסה ל-PDF. כל עמוד שלא תואם לתבנית נדחה.</p>
     <label class="dropzone">
-      <input type="file" id="pdf" accept="application/pdf">
-      <span class="dz-title">בחירת קובץ התלוש (PDF)</span>
-      <span class="dz-hint">הקובץ נפתח רק במחשב הזה, ולא נשלח לשום מקום</span>
+      <input type="file" id="pdf" accept="application/pdf" multiple>
+      <span class="dz-title">בחירת קובצי התלוש (PDF)</span>
+      <span class="dz-hint">אפשר לבחור כמה קבצים יחד (Ctrl או Shift). הם נפתחים רק במחשב הזה, ולא נשלחים לשום מקום</span>
     </label>
     <p id="status" role="status" aria-live="polite"></p>
   </section>

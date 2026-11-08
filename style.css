@@ -166,10 +166,14 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   outline: 3px solid var(--brand-ring); outline-offset: 2px;
 }
 
-/* A short line with a link to the next step, such as "already have a code?" on the registration page. */
-section.shortcut { padding: 14px 20px; }
-section.shortcut p { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin: 0; }
-section.shortcut a.button { margin-top: 0; min-height: 42px; padding: 8px 18px; }
+/* "Back" above the first card of a step. */
+.back-link { margin: 0 0 12px; font-size: 15px; }
+.back-link a { color: var(--muted); text-decoration: none; }
+.back-link a:hover { color: var(--brand); text-decoration: underline; }
+
+/* A quiet line under the form, such as "already have a code?" on the registration page. */
+.small-link { text-align: center; font-size: 13px; color: var(--muted); margin: 14px 0 0; }
+.small-link a { color: var(--muted); }
 a.button.secondary { background: #fff; color: var(--brand); }
 a.button.secondary:hover { background: var(--brand-soft); color: var(--brand-dark); }
 

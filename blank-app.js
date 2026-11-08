@@ -52,10 +52,26 @@
     return { pages };
   }
 
+  /* Several files, in name order (so "2024-02" comes after "2024-01", and "10" after "9"). Still all or nothing:
+     one unrecognised page in any file stops everything, and the answer says which file. */
+  const byName = (a, b) => a.name.localeCompare(b.name, "he", { numeric: true });
+
+  async function processFiles(files, onProgress) {
+    const ordered = [...files].sort(byName);
+    const pages = [];
+    for (let f = 0; f < ordered.length; f++) {
+      const res = await process(await ordered[f].data(), (n, t) => onProgress && onProgress(f + 1, ordered.length, n, t, ordered[f].name));
+      if (res.refused) return { refused: res.refused, file: ordered[f].name };
+      if (f > 0 && res.pages.length) res.pages[0].newFile = true;
+      pages.push(...res.pages);
+    }
+    return { pages, files: ordered.length };
+  }
+
   const makePdf = (pages) => B.build(pages);
   const makeParts = (pages) => S.parts(pages).map((indexes) => B.build(indexes.map((i) => pages[i])));
 
-  global.BlankApp = { process, makePdf, makeParts };
+  global.BlankApp = { process, processFiles, makePdf, makeParts };
 
   const input = document.getElementById("pdf");
   if (!input) return;
@@ -100,22 +116,25 @@
   }
 
   input.addEventListener("change", async () => {
-    const file = input.files[0];
+    const files = [...input.files].map((file) => ({ name: file.name, data: () => file.arrayBuffer() }));
     pages = [];
     clearShown();
     $("results").hidden = true;
-    if (!file) return;
+    if (!files.length) return;
+    const several = files.length > 1;
     try {
-      const res = await process(await file.arrayBuffer(), (n, t) => say(`מעבדים עמוד ${n} מתוך ${t}. בקובץ ארוך זה עשוי לקחת כמה דקות. לא לסגור את הלשונית.`));
+      const res = await processFiles(files, (f, total, n, t) => say(
+        `${several ? `קובץ ${f} מתוך ${total}, ` : ""}מעבדים עמוד ${n} מתוך ${t}. בקובץ ארוך זה עשוי לקחת כמה דקות. לא לסגור את הלשונית.`));
       if (res.refused) {
-        say(`עמוד ${res.refused} לא תואם לתבנית שאנחנו מכירים, ולכן לא נוצר קובץ. כך אנחנו מוודאים שפרט מזהה לא יישאר גלוי.`, true);
+        const where = several ? `בקובץ "${res.file}", עמוד ${res.refused}` : `עמוד ${res.refused}`;
+        say(`${where} לא תואם לתבנית שאנחנו מכירים, ולכן לא נוצר קובץ. כך אנחנו מוודאים שפרט מזהה לא יישאר גלוי.`, true);
         return;
       }
       pages = res.pages;
       showResult();
-      say("הקובץ החדש מוכן, ולא נשלח לשום מקום. עברי על העמודים לפני שממשיכים.");
+      say(`${several ? `${res.files} קבצים אוחדו לקובץ אחד, ${pages.length} עמודים. ` : ""}הקובץ החדש מוכן, ולא נשלח לשום מקום. עברי על העמודים לפני שממשיכים.`);
     } catch (e) {
-      say(e && e.name === "PasswordException" ? "הקובץ מוגן בסיסמה." : "לא הצלחנו לקרוא את הקובץ.", true);
+      say(e && e.name === "PasswordException" ? "אחד הקבצים מוגן בסיסמה." : "לא הצלחנו לקרוא את הקובץ.", true);
     }
   });
 

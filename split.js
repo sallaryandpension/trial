@@ -6,14 +6,15 @@
   const SAMPLE_ALL_UP_TO = 40;        // Up to this many pages she sees every page.
   const SAMPLE_EVERY = 24;            // About one year of front and back pages.
 
-  /* pages: [{ side: "front" | "back", ... }]. A front after a back opens a new payslip. Two fronts in a row belong
-     to one payslip, and a month with no back page simply ends at the next front that follows a back. */
+  /* pages: [{ side: "front" | "back", newFile?, ... }]. A front after a back opens a new payslip. Two fronts in a row
+     belong to one payslip, and a month with no back page simply ends at the next front that follows a back. The first
+     page of every file after the first opens a new payslip too: a payslip never spans two files. */
   function slips(pages) {
     const out = [];
     let current = null;
     let last = null;
     pages.forEach((page, index) => {
-      if (!current || (page.side === "front" && last === "back")) {
+      if (!current || page.newFile || (page.side === "front" && last === "back")) {
         current = [];
         out.push(current);
       }

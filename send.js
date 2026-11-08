@@ -85,6 +85,7 @@
   async function run() {
     $("send").disabled = true;
     $("retry").hidden = true;
+    $("back").hidden = true; // Leaving mid-send would cut the upload. A failure brings it back below.
     $("saved").disabled = true;
     $("progress").hidden = false;
     $("progress").max = blobs.length;
@@ -109,6 +110,7 @@
       const known = FAILURES[e.message];
       say(known || "השליחה לא הושלמה. החלקים שכבר נשלחו נשמרו, ואפשר לנסות שוב.", true);
       $("retry").hidden = !!known;
+      $("back").hidden = false;
     }
   }
 
