@@ -106,7 +106,7 @@
     $("results").hidden = true;
     if (!file) return;
     try {
-      const res = await process(await file.arrayBuffer(), (n, t) => say(`מעבדים עמוד ${n} מתוך ${t}`));
+      const res = await process(await file.arrayBuffer(), (n, t) => say(`מעבדים עמוד ${n} מתוך ${t}. בקובץ ארוך זה עשוי לקחת כמה דקות. לא לסגור את הלשונית.`));
       if (res.refused) {
         say(`עמוד ${res.refused} לא תואם לתבנית שאנחנו מכירים, ולכן לא נוצר קובץ. כך אנחנו מוודאים שפרט מזהה לא יישאר גלוי.`, true);
         return;

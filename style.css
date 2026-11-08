@@ -1,6 +1,7 @@
 :root { --bg: #f6f4ef; --card: #fff; --ink: #1f2a33; --muted: #5b6770; --line: #dfd9cd; --brand: #17465c;
   --gap: #b3261e; --review: #9a6700; --ok: #1a7f4b; --none: #5b6770; }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; } /* label and a.button set display, which would otherwise beat the attribute. */
 body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.55 "Segoe UI", Arial, sans-serif; }
 header { background: var(--brand); color: #fff; padding: 24px 16px; text-align: center; }
 header h1 { margin: 0 0 6px; font-size: 26px; }
@@ -43,3 +44,8 @@ progress { display: block; width: 100%; margin-top: 12px; }
 .trap { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); opacity: 0; pointer-events: none; } /* Moving it off screen would widen a right-to-left page. */
 .draft { background: #fbe9e7; border: 1px solid var(--gap); color: var(--gap); font-weight: 600; }
 .consent p { margin: 0 0 10px; }
+ul.points, ol.steps { margin: 0; padding-inline-start: 22px; }
+ul.points li, ol.steps li { margin-bottom: 10px; }
+ul.points li::marker { color: var(--brand); }
+ol.steps li::marker { color: var(--brand); font-weight: 700; }
+.footer-links { text-align: center; font-size: 14px; color: var(--muted); }

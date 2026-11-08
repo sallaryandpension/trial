@@ -25,13 +25,15 @@
       notice.append(p);
     }
     $("consent-data-text").textContent = C.consentData;
-    $("consent-ai-text").textContent = C.consentAi;
+    $("consent-ai-text").textContent = C.consentAi || "";
+    $("consent-ai-row").hidden = !C.consentAi;
     $("draft").hidden = !C.version.startsWith("DRAFT");
   }
 
-  /* Both boxes are needed, and neither is ticked in advance (נוהל_ציות_משפטי.md, section 2). */
+  /* Every box shown is needed, and none is ticked in advance (נוהל_ציות_משפטי.md, section 2). The AI box shows only
+     while consent.js names a provider. */
   function updateButton() {
-    $("submit").disabled = !($("consent-data").checked && $("consent-ai").checked);
+    $("submit").disabled = !($("consent-data").checked && (!C.consentAi || $("consent-ai").checked));
   }
 
   function problem() {
@@ -50,7 +52,7 @@
     try {
       const reply = await global.Api.call("register", {
         name: $("name").value.trim(), email: $("email").value.trim(), phone: digits($("phone").value),
-        consentVersion: C.version, consentData: $("consent-data").checked, consentAi: $("consent-ai").checked,
+        consentVersion: C.version, consentData: $("consent-data").checked, consentAi: !!C.consentAi && $("consent-ai").checked,
         website: $("website").value,
       });
       if (reply.ok) {

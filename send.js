@@ -96,7 +96,7 @@
         global.sessionStorage.removeItem("ticket");
       }
       for (; nextPart <= blobs.length; nextPart++) {
-        say(`שולחים חלק ${nextPart} מתוך ${blobs.length}`);
+        say(`מצפינים ושולחים חלק ${nextPart} מתוך ${blobs.length}. זה עשוי לקחת כמה דקות. לא לסגור את הלשונית ולא לעבור עמוד.`);
         $("progress").value = nextPart - 1;
         await sendPart(nextPart);
       }
