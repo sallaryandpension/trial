@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#17465c">
+<!-- The operator's phone app. Not linked from any teacher page. Without the phone key it can do nothing; the key
+     arrives once in the address after the #, is kept in this phone's storage, and is never in the page itself. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src https://script.google.com/macros/s/AKfycbyGhnnzfXejxpYZVzX2U9uykm526udYM6G5hJUnQsLePHbiMElV_Y1z8CuSsRdPqZ1sxA/exec https://script.googleusercontent.com/macros/echo; img-src 'self'; manifest-src 'self'; form-action 'none'; base-uri 'none'">
+<title>קודי כניסה</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<section class="draft">אתר ניסיון של המפעיל. לא לשימוש של מורות. הנוסח עוד לא אושר בידי עורך דין, והאתר יורד בסוף הניסיון.</section>
+<header>
+  <div class="brandbar"><img src="logo.svg" alt="" width="34" height="34"><span>בדיקת תלוש למורים</span></div>
+  <h1>קודי כניסה</h1>
+  <p>לחיצה אחת, שלושה קודים חדשים למורה שנרשמה.</p>
+</header>
+<main>
+  <section id="not-linked" hidden>
+    <h2>הטלפון לא מחובר</h2>
+    <p>בחלון התיקים במחשב לוחצים "חיבור הטלפון", וסורקים בטלפון את קוד ה-QR שמופיע.</p>
+  </section>
+
+  <section id="app" hidden>
+    <button id="make" type="button">3 קודים חדשים</button>
+    <p id="status" role="status" aria-live="polite"></p>
+    <div id="result" hidden>
+      <ol class="codes" id="codes"></ol>
+      <div class="fields">
+        <label>הטלפון של המורה (מהגיליון)
+          <input type="tel" id="phone" dir="ltr" inputmode="numeric" autocomplete="off" maxlength="14">
+        </label>
+      </div>
+      <div class="actions">
+        <a class="button primary" id="sms" href="#">שליחת SMS</a>
+        <button id="copy" type="button">העתקת ההודעה</button>
+      </div>
+      <p class="hint">ההודעה כוללת את שלושת הקודים. כל קוד עובד פעם אחת, והמורה משתמשת באחד מהם. אחרי השליחה מסמנים "נשלח" בגיליון.</p>
+    </div>
+  </section>
+  <p class="footer-links">להתקנה: בתפריט של כרום ← "הוספה למסך הבית"</p>
+</main>
+<script src="config.js"></script>
+<script src="api.js"></script>
+<script src="op.js"></script>
+</body>
+</html>

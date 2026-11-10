@@ -156,8 +156,8 @@ button:disabled, button:disabled:hover {
 .actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .actions button, .actions a.button, button.secondary { margin-top: 18px; background: #fff; color: var(--brand); }
 .actions button:hover, .actions a.button:hover, button.secondary:hover { background: var(--brand-soft); color: var(--brand-dark); }
-.actions button.primary { background: var(--brand); color: #fff; }
-.actions button.primary:hover { background: var(--brand-dark); color: #fff; }
+.actions button.primary, .actions a.button.primary { background: var(--brand); color: #fff; }
+.actions button.primary:hover, .actions a.button.primary:hover { background: var(--brand-dark); color: #fff; }
 .actions button:disabled, button.secondary:disabled { background: #fff; color: #9aa7b3; border-color: #d3dae0; }
 button.danger { background: var(--gap); border-color: var(--gap); }
 button.danger:hover { background: #8f1e18; border-color: #8f1e18; }
@@ -165,6 +165,14 @@ button.danger:disabled { background: #e6c4c1; border-color: #e6c4c1; }
 button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, label.check:focus-within {
   outline: 3px solid var(--brand-ring); outline-offset: 2px;
 }
+
+/* The phone app: the codes, large enough to read out. */
+ol.codes { list-style: none; padding: 0; margin: 18px 0 6px; display: grid; gap: 8px; }
+ol.codes li {
+  font: 700 26px/1.2 ui-monospace, Consolas, monospace; letter-spacing: 2px; direction: ltr; text-align: center;
+  padding: 12px; border: 1.5px solid var(--line); border-radius: var(--radius-sm); background: #f8fafb; color: var(--brand-dark);
+}
+#make { width: 100%; font-size: 20px; min-height: 64px; margin-top: 0; }
 
 /* "Back" above the first card of a step. */
 .back-link { margin: 0 0 12px; font-size: 15px; }
