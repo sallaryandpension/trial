@@ -31,14 +31,19 @@
   const entryUrl = () => new URL("index.html", global.location.href).href;
   const digits = (text) => text.replace(/\D/g, "");
 
-  function message() {
-    return ["שלום, תודה שנרשמת לבדיקת התלוש.", "קודי הכניסה שלך (אם הראשון לא עובד, נסי את הבא):", ...codes, "",
-      `נכנסים כאן: ${entryUrl()}`, "כל קוד תקף לשימוש אחד."].join("\n");
+  /* All three, or just one of them. */
+  function message(only) {
+    const lines = only
+      ? ["שלום, תודה שנרשמת לבדיקת התלוש.", `קוד הכניסה שלך: ${only}`]
+      : ["שלום, תודה שנרשמת לבדיקת התלוש.", "קודי הכניסה שלך (אם הראשון לא עובד, נסי את הבא):", ...codes];
+    return [...lines, "", `נכנסים כאן: ${entryUrl()}`, only ? "הקוד תקף לשימוש אחד." : "כל קוד תקף לשימוש אחד."].join("\n");
   }
 
+  const smsLink = (text) => `sms:${digits($("phone").value)}?body=${encodeURIComponent(text)}`;
+
   function updateSms() {
-    const phone = digits($("phone").value);
-    $("sms").href = `sms:${phone}?body=${encodeURIComponent(message())}`;
+    $("sms").href = smsLink(message());
+    document.querySelectorAll("#codes a[data-code]").forEach((a) => { a.href = smsLink(message(a.dataset.code)); });
   }
 
   async function make() {
@@ -50,11 +55,19 @@
         codes = reply.codes;
         const list = $("codes");
         list.textContent = "";
-        for (const code of codes) {
+        codes.forEach((code, i) => {
           const li = document.createElement("li");
-          li.textContent = code;
+          const text = document.createElement("span");
+          text.className = "code";
+          text.textContent = code;
+          const send = document.createElement("a");
+          send.className = "button";
+          send.dataset.code = code;
+          send.textContent = "SMS עם הקוד הזה";
+          send.setAttribute("aria-label", `שליחת הקוד ה${["ראשון", "שני", "שלישי"][i] || ""} ב-SMS`);
+          li.append(text, send);
           list.append(li);
-        }
+        });
         $("result").hidden = false;
         updateSms();
         say("שלושה קודים חדשים מוכנים.");

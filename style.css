@@ -169,9 +169,14 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 /* The phone app: the codes, large enough to read out. */
 ol.codes { list-style: none; padding: 0; margin: 18px 0 6px; display: grid; gap: 8px; }
 ol.codes li {
-  font: 700 26px/1.2 ui-monospace, Consolas, monospace; letter-spacing: 2px; direction: ltr; text-align: center;
-  padding: 12px; border: 1.5px solid var(--line); border-radius: var(--radius-sm); background: #f8fafb; color: var(--brand-dark);
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+  padding: 10px 12px; border: 1.5px solid var(--line); border-radius: var(--radius-sm); background: #f8fafb;
 }
+ol.codes .code {
+  font: 700 24px/1.2 ui-monospace, Consolas, monospace; letter-spacing: 2px; direction: ltr; color: var(--brand-dark);
+}
+ol.codes a.button { margin-top: 0; min-height: 40px; padding: 6px 14px; font-size: 15px; width: auto; background: #fff; color: var(--brand); }
+ol.codes a.button:hover { background: var(--brand-soft); color: var(--brand-dark); }
 #make { width: 100%; font-size: 20px; min-height: 64px; margin-top: 0; }
 
 /* "Back" above the first card of a step. */
