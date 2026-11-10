@@ -68,36 +68,89 @@
     return { pages, files: ordered.length };
   }
 
-  const makePdf = (pages) => B.build(pages);
-  const makeParts = (pages) => S.parts(pages).map((indexes) => B.build(indexes.map((i) => pages[i])));
+  /* Pages she marked by hand get her boxes burnt into the image; the others are used as they are. */
+  async function finalPages(pages) {
+    const out = [];
+    for (const p of pages) {
+      if (!p.marks || !p.marks.length) { out.push(p); continue; }
+      const jpeg = await global.Marks.burn(p.jpeg, p.pixelWidth, p.pixelHeight, p.marks);
+      out.push(Object.assign({}, p, { jpeg, size: jpeg.size }));
+    }
+    return out;
+  }
+  const makePdf = async (pages) => B.build(await finalPages(pages));
+  const makeParts = async (pages) => {
+    const list = await finalPages(pages);
+    return S.parts(list).map((indexes) => B.build(indexes.map((i) => list[i])));
+  };
 
-  global.BlankApp = { process, processFiles, makePdf, makeParts };
+  global.BlankApp = { process, processFiles, finalPages, makePdf, makeParts };
 
   const input = document.getElementById("pdf");
   if (!input) return;
   const $ = (id) => document.getElementById(id);
   let pages = [];
   let urls = [];
-  const say = (text, error) => { $("status").textContent = text; $("status").classList.toggle("error", !!error); };
+  let marking = false;
+  const history = [];   // page indexes, in the order she drew her boxes
+  const shown = new Map();   // page index -> its element
+  const say =(text, error) => { $("status").textContent = text; $("status").classList.toggle("error", !!error); };
   const hasTicket = () => { try { return !!global.sessionStorage.getItem("ticket"); } catch (e) { return false; } };
 
   function clearShown() {
     urls.forEach((url) => URL.revokeObjectURL(url));
     urls = [];
+    shown.clear();
     $("pages").textContent = "";
   }
 
+  function drawMarks(i) {
+    const wrap = shown.get(i);
+    if (!wrap) return;
+    wrap.querySelectorAll(".mark").forEach((el) => el.remove());
+    for (const m of pages[i].marks) {
+      const el = document.createElement("div");
+      el.className = "mark";
+      global.Marks.place(el, m);
+      wrap.append(el);
+    }
+  }
+
+  function unconfirm() {
+    $("confirm").checked = false;
+    ["save", "next", "add-pension"].forEach((id) => { $(id).disabled = true; });
+  }
+
+  function setMarking(on) {
+    marking = on;
+    $("mark").textContent = on ? "סימון ידני: פועל" : "סימון ידני: כבוי";
+    $("mark").setAttribute("aria-pressed", String(on));
+    $("mark-hint").hidden = !on;
+    document.querySelectorAll(".sheet").forEach((s) => s.classList.toggle("marking", on));
+  }
+
+  /* Each page sits in a frame, so that after our blanking she can black out more herself. */
   function show(indexes) {
     clearShown();
     for (const i of indexes) {
+      const wrap = document.createElement("div");
+      wrap.className = marking ? "sheet marking" : "sheet";
       const img = document.createElement("img");
       const url = URL.createObjectURL(pages[i].jpeg);
       urls.push(url);
       img.src = url;
       img.loading = "lazy";
-      img.className = "page";
+      img.draggable = false;
       img.alt = `עמוד ${i + 1}`;
-      $("pages").append(img);
+      wrap.append(img);
+      global.Marks.attach(wrap, pages[i].marks, () => marking, () => {
+        history.push(i);
+        $("undo").disabled = false;
+        unconfirm();
+      });
+      $("pages").append(wrap);
+      shown.set(i, wrap);
+      drawMarks(i);
     }
   }
 
@@ -111,7 +164,10 @@
     $("confirm").checked = false;
     $("save").disabled = true;
     $("next").disabled = true;
-    $("next").hidden = !hasTicket();
+    $("next").hidden = false;
+    $("add-pension").disabled = true;
+    $("add-pension").hidden = false;
+    $("no-ticket").hidden = hasTicket();
     $("results").hidden = false;
   }
 
@@ -130,7 +186,10 @@
         say(`${where} לא תואם לתבנית שאנחנו מכירים, ולכן לא נוצר קובץ. כך אנחנו מוודאים שפרט מזהה לא יישאר גלוי.`, true);
         return;
       }
-      pages = res.pages;
+      pages = res.pages.map((p) => Object.assign(p, { marks: [] }));
+      history.length = 0;
+      $("undo").disabled = true;
+      setMarking(false);
       showResult();
       say(`${several ? `${res.files} קבצים אוחדו לקובץ אחד, ${pages.length} עמודים. ` : ""}הקובץ החדש מוכן, ולא נשלח לשום מקום. עברי על העמודים לפני שממשיכים.`);
     } catch (e) {
@@ -146,10 +205,29 @@
   $("confirm").addEventListener("change", () => {
     $("save").disabled = !$("confirm").checked;
     $("next").disabled = !$("confirm").checked;
+    $("add-pension").disabled = !$("confirm").checked;
   });
-  $("save").addEventListener("click", () => {
+  /* The payslips wait in the browser's database while she blanks the fund's report on the next page. */
+  $("add-pension").addEventListener("click", async () => {
+    $("add-pension").disabled = true;
+    try {
+      await global.Handoff.put(await makeParts(pages));
+      global.location.href = "pension.html";
+    } catch (e) {
+      say("לא הצלחנו לשמור את התלושים בדפדפן. ייתכן שהדפדפן במצב פרטי.", true);
+      $("add-pension").disabled = false;
+    }
+  });
+  $("mark").addEventListener("click", () => setMarking(!marking));
+  $("undo").addEventListener("click", () => {
+    const i = history.pop();
+    if (i !== undefined) { pages[i].marks.pop(); drawMarks(i); }
+    $("undo").disabled = !history.length;
+    unconfirm();
+  });
+  $("save").addEventListener("click", async () => {
     const a = document.createElement("a");
-    a.href = URL.createObjectURL(makePdf(pages));
+    a.href = URL.createObjectURL(await makePdf(pages));
     a.download = "תלוש_בלי_פרטים_מזהים.pdf";
     a.click();
     URL.revokeObjectURL(a.href);
@@ -157,8 +235,9 @@
   $("next").addEventListener("click", async () => {
     $("next").disabled = true;
     try {
-      await global.Handoff.put(makeParts(pages));
-      global.location.href = "send.html";
+      await global.Handoff.put(await makeParts(pages));
+      /* Without an entry code the file waits in the browser while she enters it, then she goes on to sending. */
+      global.location.href = hasTicket() ? "send.html" : "index.html?next=send";
     } catch (e) {
       say("לא הצלחנו להעביר את הקובץ לעמוד השליחה. ייתכן שהדפדפן במצב פרטי.", true);
       $("next").disabled = false;

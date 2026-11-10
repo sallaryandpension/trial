@@ -20,7 +20,9 @@
       const reply = await global.Api.call("checkCode", { hash: await global.CaseCrypto.sha256Hex(code) });
       if (reply.ok) {
         global.sessionStorage.setItem("ticket", reply.ticket);
-        global.location.href = "blank.html";
+        /* She may have prepared the file first: then it waits in the browser and she goes straight to sending. */
+        const next = new URLSearchParams(global.location.search).get("next");
+        global.location.href = next === "send" ? "send.html" : "blank.html";
         return;
       }
       say(reply.error === "busy" ? "יש עומס. נסי שוב בעוד כמה דקות." : "הקוד לא תקין.", true);

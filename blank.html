@@ -34,15 +34,26 @@
     <div class="notice">
       <p><strong>חשוב:</strong> עברי על העמודים ובדקי שלא נשאר שם, מספר זהות, כתובת, בנק או שם בית ספר. הסכומים נשארים כמו שהם, ולכן גם אחרי המחיקה ייתכן שאפשר לזהות אדם לפי השכר. אי אפשר להבטיח אנונימיות מלאה.</p>
     </div>
+    <div class="notice consent">
+      <p><strong>נשאר פרט מזהה?</strong> התוכנה שלנו כבר רוקנה את האזורים המזהים שאנחנו מכירים בתלוש. אם לדעתך יש עוד משהו שצריך להסתיר, מפעילים "סימון ידני" וגוררים מלבן עליו. רק לא להסתיר סכומים, שעות או חודשים, כי הבדיקה צריכה אותם.</p>
+    </div>
+    <div class="actions">
+      <button id="mark" type="button" aria-pressed="false">סימון ידני: כבוי</button>
+      <button id="undo" type="button" disabled>ביטול הסימון האחרון</button>
+    </div>
+    <p class="hint" id="mark-hint" hidden>גוררים מלבן על הפרט שצריך להסתיר. כשהסימון פועל, גוללים מחוץ לעמודים, או מכבים אותו.</p>
     <p class="hint" id="sample-note"></p>
     <button id="show-all" type="button" hidden>הצגת כל העמודים</button>
     <div id="pages"></div>
     <label class="check"><input type="checkbox" id="confirm"> <span id="confirm-text">בדקתי את כל העמודים</span></label>
     <div class="actions">
-      <button id="next" class="primary" type="button" disabled hidden>המשך לשליחה</button>
-      <button id="save" type="button" disabled>שמירת הקובץ החדש במחשב</button>
+      <button id="next" class="primary" type="button" disabled hidden>שליחה אלינו לבדיקה</button>
+      <button id="add-pension" type="button" disabled hidden>הוספת דוח מהקופה, ואז שליחה</button>
+      <button id="save" type="button" disabled>שמירת עותק במחשב</button>
     </div>
+    <p class="hint" id="no-ticket" hidden>לשליחה צריך את קוד הכניסה שקיבלת ב-SMS. נבקש אותו בשלב הבא, והקובץ יחכה בדפדפן.</p>
   </section>
+  <p class="small-link"><a href="pension.html">רק דוח מקופת הפנסיה, בלי תלוש? לעמוד הדוח מהקופה</a></p>
   <p class="footer-links"><a href="privacy.html">אבטחה ופרטיות</a> · <a href="terms.html">תנאי שימוש</a> · <a href="accessibility.html">הצהרת נגישות</a> · <a href="delete.html">מחיקה ובקשות</a></p>
 </main>
 <script src="vendor/pdf.min.js"></script>
@@ -50,6 +61,7 @@
 <script src="blank-pdf.js"></script>
 <script src="split.js"></script>
 <script src="handoff.js"></script>
+<script src="marks.js"></script>
 <script src="blank-app.js"></script>
 </body>
 </html>

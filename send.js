@@ -116,7 +116,7 @@
 
   async function start() {
     if (!global.sessionStorage.getItem("ticket")) {
-      showMissing("צריך להיכנס קודם", "כדי לשלוח צריך קוד כניסה.", "לכניסה", "index.html");
+      showMissing("צריך להיכנס קודם", "כדי לשלוח צריך קוד כניסה. הקובץ שהכנת מחכה בדפדפן עד שעתיים.", "לכניסה", "index.html?next=send");
       return;
     }
     blobs = await global.Handoff.take();

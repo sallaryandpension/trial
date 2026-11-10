@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- connect-src 'none' stays on this page for good, as on blank.html. tools/build_site.py refuses to build without it. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; worker-src 'self' blob:; style-src 'self'; connect-src 'none'; img-src 'self' data: blob:; font-src 'none'; form-action 'none'; base-uri 'none'">
+<title>דוח מהקופה בלי פרטים מזהים</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<section class="draft">אתר ניסיון של המפעיל. לא לשימוש של מורות. הנוסח עוד לא אושר בידי עורך דין, והאתר יורד בסוף הניסיון.</section>
+<header>
+  <div class="brandbar"><img src="logo.svg" alt="" width="34" height="34"><span>בדיקת תלוש למורים</span></div>
+  <h1>דוח מהקופה בלי פרטים מזהים</h1>
+  <p>לדוח שנתי או רבעוני מקרן הפנסיה, מקופת הגמל או מקרן ההשתלמות. העמוד יוצר PDF חדש, והפרטים המזהים בו מושחרים. <strong>הקובץ המקורי והפרטים שתקלידי לא נשלחים לשום מקום.</strong></p>
+  <ol class="stepper" aria-label="שלבי הבדיקה"><li class="done"><a href="register.html">הרשמה</a></li><li class="done"><a href="index.html">כניסה</a></li><li aria-current="step">ריקון הדוח</li><li>שליחה</li><li>הדוח</li></ol>
+</header>
+<main>
+  <p class="back-link"><a href="blank.html">→ חזרה לתלוש</a></p>
+  <p class="notice" id="waiting" hidden></p>
+
+  <section>
+    <h2>1. מה צריך להסתיר (לא חובה)</h2>
+    <p class="hint">אם תמלאי את הפרטים האלה, העמוד ימצא אותם בדוח ויציע להסתיר כל מקום שבו הם מופיעים. הם נשארים במכשיר הזה בלבד.</p>
+    <p class="hint"><strong>לא חייבים למלא אף שדה.</strong> אפשר להשאיר הכול ריק, ולהסתיר את הפרטים בעצמך בשלב 3, עם "סימון ידני".</p>
+    <div class="fields">
+      <label>מספר תעודת זהות (לא חובה)
+        <input type="text" id="id" dir="ltr" inputmode="numeric" autocomplete="off" maxlength="12">
+      </label>
+      <label>שם פרטי ושם משפחה (לא חובה)
+        <input type="text" id="name" autocomplete="off" maxlength="80">
+      </label>
+      <label>שמות נוספים (לא חובה): שם משפחה קודם, בן או בת הזוג, הילדים
+        <input type="text" id="others" autocomplete="off" maxlength="300">
+      </label>
+      <label>מספרי חשבון או פוליסה (לא חובה), מופרדים בפסיק
+        <input type="text" id="accounts" dir="ltr" autocomplete="off" maxlength="300">
+      </label>
+    </div>
+  </section>
+
+  <section>
+    <h2>2. בחרי את הדוח</h2>
+    <p class="hint">דוח שהורדת מאתר הקופה כ-PDF. דוח סרוק או צילום לא מתאים לעמוד הזה.</p>
+    <label class="dropzone">
+      <input type="file" id="pdf" accept="application/pdf" multiple>
+      <span class="dz-title">בחירת קובצי הדוח (PDF)</span>
+      <span class="dz-hint" id="dz-hint">אפשר לבחור כמה קבצים יחד. הם נפתחים רק במחשב הזה</span>
+    </label>
+    <p id="status" role="status" aria-live="polite"></p>
+  </section>
+
+  <section id="results" hidden>
+    <h2>3. בדקי את ההצעה שלנו, ותקני אותה</h2>
+    <div class="notice">
+      <p><strong>האחריות להסתיר את הפרטים המזהים היא שלך.</strong> לפני השליחה צריך שבכל העמודים יהיו מוסתרים:</p>
+      <ul class="points">
+        <li>שם, שם משפחה קודם ומספר תעודת זהות</li>
+        <li>כתובת, טלפון ודוא"ל</li>
+        <li>תאריך לידה, מצב משפחתי ומין</li>
+        <li>שמות ופרטים של בן או בת הזוג ושל הילדים</li>
+        <li>שם המעסיק, ושם הסוכן או היועץ</li>
+        <li>מספרי חשבון, פוליסה ותיק ניכויים</li>
+      </ul>
+      <p>המלבנים השחורים הם <strong>הצעה</strong> שלנו למה להסתיר. ההצעה עלולה לפספס פרט, ועלולה גם להסתיר יותר מדי.</p>
+    </div>
+    <div class="notice consent">
+      <p><strong>הסתרנו משהו שצריך לבדיקה?</strong> הבדיקה צריכה את ההפקדות, הסכומים, החודשים והתאריכים שלהן, דמי הניהול והיתרות. לחיצה על מלבן שחור מבטלת אותו, והוא נשאר מסומן במסגרת אדומה. לחיצה נוספת מחזירה אותו.</p>
+      <p>מלבן שמכסה פרט שהקלדת (מספר הזהות, השם או מספר חשבון) נשאר תמיד.</p>
+      <p><strong>נשאר פרט מזהה גלוי?</strong> מפעילים "סימון ידני" וגוררים עליו מלבן.</p>
+    </div>
+    <p class="notice" id="untyped" hidden>לא מילאת פרטים בשלב 1, ולכן ההצעה מבוססת רק על הכותרות שבדוח ועל מספרים שנראים מזהים. שמך ומספר הזהות שלך עלולים להופיע במקומות שההצעה לא כיסתה. עברי על כל עמוד, וסמני בעצמך כל פרט שנשאר גלוי.</p>
+    <p class="notice" id="unknown" hidden>הדוח הזה לא נראה כמו הדוח השנתי במבנה שקבעה רשות שוק ההון. ההצעה מבוססת רק על הפרטים שהקלדת ועל מספרים שנראים מזהים. עברי על כל עמוד בעיון, וסמני כל פרט נוסף.</p>
+    <p class="hint" id="summary" aria-live="polite"></p>
+    <div class="actions">
+      <button id="mark" type="button" aria-pressed="false">סימון ידני: כבוי</button>
+      <button id="undo" type="button" disabled>ביטול הפעולה האחרונה</button>
+      <button id="restore" type="button" disabled>החזרת כל מה שביטלתי</button>
+    </div>
+    <p class="hint" id="mark-hint" hidden>גוררים מלבן על הפרט שצריך להסתיר. כשהסימון פועל, לחיצה על מלבן לא מבטלת אותו, וגוללים מחוץ לעמודים. מכבים את הסימון כדי לבטל מלבנים.</p>
+    <div id="pages"></div>
+    <label class="check"><input type="checkbox" id="confirm"> <span>בדקתי את כל העמודים. כל הפרטים המזהים מוסתרים, ומה שצריך לבדיקה גלוי</span></label>
+    <div class="actions">
+      <button id="next" class="primary" type="button" disabled>שליחה אלינו לבדיקה</button>
+      <button id="save" type="button" disabled>שמירת עותק במחשב</button>
+    </div>
+    <p class="hint" id="no-ticket" hidden>לשליחה צריך את קוד הכניסה שקיבלת ב-SMS. נבקש אותו בשלב הבא, והקובץ יחכה בדפדפן.</p>
+  </section>
+  <p class="footer-links"><a href="privacy.html">אבטחה ופרטיות</a> · <a href="terms.html">תנאי שימוש</a> · <a href="accessibility.html">הצהרת נגישות</a> · <a href="delete.html">מחיקה ובקשות</a></p>
+</main>
+<script src="vendor/pdf.min.js"></script>
+<script src="blank-pdf.js"></script>
+<script src="handoff.js"></script>
+<script src="marks.js"></script>
+<script src="pension-blank.js"></script>
+<script src="pension-app.js"></script>
+</body>
+</html>

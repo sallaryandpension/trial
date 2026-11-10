@@ -34,6 +34,23 @@
     parts.forEach((blob, index) => store.put({ index, blob, at }));
   });
 
+  /* Adds after what is already waiting: the pension report joins the payslips made a moment ago. */
+  const add = (parts) => run("readwrite", (store) => {
+    const keys = store.getAllKeys();
+    keys.onsuccess = () => {
+      const first = keys.result.length ? Math.max(...keys.result) + 1 : 0;
+      const at = Date.now();
+      parts.forEach((blob, i) => store.put({ index: first + i, blob, at }));
+    };
+  });
+
+  /* How many fresh parts are waiting, without taking them. */
+  const count = () => run("readonly", (store) => new Promise((resolve) => {
+    const rows = store.getAll();
+    rows.onsuccess = () => resolve(rows.result.filter((r) => Date.now() - r.at < MAX_AGE).length);
+    rows.onerror = () => resolve(0);
+  }));
+
   /* Reads and empties in one step. Parts older than the limit are dropped, not sent. */
   const take = () => open().then((db) => new Promise((resolve, reject) => {
     const tx = db.transaction(STORE, "readwrite");
@@ -49,5 +66,5 @@
     tx.onabort = tx.onerror = () => { db.close(); reject(tx.error); };
   }));
 
-  global.Handoff = { put, take, clear };
+  global.Handoff = { put, add, count, take, clear };
 })(window);
