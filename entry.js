@@ -32,6 +32,25 @@
     $("enter").disabled = false;
   }
 
+  /* "The code didn't arrive": a request in the operator's requests tab, and an alert. Only the phone is sent. */
+  async function noCode() {
+    const phone = $("nocode-phone").value.replace(/\D/g, "");
+    const status = $("nocode-status");
+    const tell = (text, error) => { status.textContent = text; status.classList.toggle("error", !!error); };
+    if (!/^05\d{8}$/.test(phone)) { tell("מספר הנייד לא נראה תקין.", true); return; }
+    $("nocode-send").disabled = true;
+    tell("שולחים...");
+    try {
+      const reply = await global.Api.call("request", { type: "nocode", phone });
+      if (reply.ok) { tell("קיבלנו. קוד חדש יישלח אלייך ב-SMS למספר הזה."); return; }
+      tell(reply.error === "busy" ? "יש עומס. נסי שוב בעוד כמה דקות." : "הבקשה לא התקבלה. נסי שוב.", true);
+    } catch (e) {
+      tell("אין חיבור לשרת. נסי שוב מאוחר יותר.", true);
+    }
+    $("nocode-send").disabled = false;
+  }
+
+  $("nocode-send").addEventListener("click", noCode);
   $("enter").addEventListener("click", enter);
   $("code").addEventListener("keydown", (e) => { if (e.key === "Enter") enter(); });
 })(window);
