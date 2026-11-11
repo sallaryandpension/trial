@@ -39,6 +39,8 @@
       $("scope").hidden = false;
       $("erase").href = `delete.html#${code.caseId}.${code.reportKey}`;  // The key stays after the #, in this browser.
       $("erase-note").hidden = false;
+      $("resubmit-box").hidden = !reply.resubmit;   // only under an error report
+      opened = code;
       $("ask").hidden = true;
       say("הדוח מוכן.");
     } catch (e) {
@@ -51,6 +53,15 @@
     if (!code) { say("הקישור לא שלם. העתיקי אותו שוב, מההתחלה ועד הסוף.", true); return; }
     fetchReport(code);
   }
+
+  /* Upload again into this case, after an error report: the case and its key wait in this tab only, the entry page
+     takes the code from the error report, and the sending page uses this case instead of making a new one. */
+  let opened = null;
+  $("resubmit").addEventListener("click", () => {
+    if (!opened) return;
+    try { global.sessionStorage.setItem("resubmit", `${opened.caseId}.${opened.reportKey}`); } catch (e) { return; }
+    global.location.href = "index.html?resubmit=1";
+  });
 
   const current = C.parseCode(global.location.hash);
   $("open").addEventListener("click", fromPaste);

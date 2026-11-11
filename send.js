@@ -81,6 +81,7 @@
   const FAILURES = {
     ticket: "אישור הכניסה כבר נוצל או שפג תוקפו. צריך קוד כניסה חדש. בקשי אותו מחדש בטופס הרישום.",
     upload: "השליחה נקטעה זמן רב מדי. צריך להתחיל מחדש מעמוד הריקון.",
+    closed: "אי אפשר לשלוח שוב לתיק הזה: העלאה חוזרת אפשרית רק אחרי דוח שגיאה. אפשר לבטל ולשלוח את הקובץ כתיק חדש, בלי קוד נוסף.",
   };
 
   async function run() {
@@ -107,6 +108,7 @@
       $("progress").value = blobs.length;
       tell("done");
       blobs = [];
+      try { global.sessionStorage.removeItem("resubmit"); } catch (e) { /* nothing kept */ }
       $("step-code").hidden = true;
       $("step-send").hidden = true;
       $("done").hidden = false;
@@ -133,10 +135,18 @@
       showMissing("אין קובץ לשליחה", "הקובץ נמחק מהדפדפן כשעזבת את העמוד, או שעדיין לא נוצר. צריך ליצור אותו בעמוד הריקון.", "לעמוד הריקון", "blank.html");
       return;
     }
-    const made = C.makeCase();
-    session = Object.assign(made, { link: reportLink(made.caseId, made.reportKey) });
+    /* An upload again, after an error report: the same case and key from her link, so the report comes to the same
+       place. Otherwise a new case. */
+    let again = null;
+    try { again = C.parseCode(global.sessionStorage.getItem("resubmit") || ""); } catch (e) { again = null; }
+    const made = again || C.makeCase();
+    session = Object.assign(made, { link: reportLink(made.caseId, made.reportKey), again: !!again });
     describe();
     showLink();
+    if (again) {
+      $("again-note").hidden = false;
+      $("step-code-title").textContent = "1. זה אותו קישור ששמרת";
+    }
   }
 
   /* What is about to go, by kind, and the buttons to take a wrong file out before anything is sent. */
@@ -168,7 +178,9 @@
       ? "לבטל? חלקים שכבר נשלחו יימחקו מהשרת בעצמם תוך יומיים. קוד הכניסה כבר נוצל, ולשליחה חדשה צריך קוד חדש."
       : "לבטל את השליחה? שום דבר לא נשלח. הקבצים יימחקו מהדפדפן, ותחזרי לבחירת הקובץ. קוד הכניסה נשאר בתוקף.";
     if (!global.confirm(text)) return;
-    tell("cancelled");
+    /* Cancelling an upload again keeps the case: her link must not be told the case is gone. */
+    if (!session.again) tell("cancelled");
+    try { global.sessionStorage.removeItem("resubmit"); } catch (e) { /* nothing kept */ }   // the next try is a new case
     blobs = [];
     global.location.href = "blank.html";
   }

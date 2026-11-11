@@ -50,6 +50,9 @@
     $("nocode-send").disabled = false;
   }
 
+  /* Coming from the report page for an upload again: the case waits in this tab (report.js). */
+  try { $("resubmit-note").hidden = !global.sessionStorage.getItem("resubmit"); } catch (e) { /* nothing kept */ }
+
   $("nocode-send").addEventListener("click", noCode);
   $("enter").addEventListener("click", enter);
   $("code").addEventListener("keydown", (e) => { if (e.key === "Enter") enter(); });
