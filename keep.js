@@ -23,6 +23,7 @@
     sending: (m) => `הקבצים נשלחים בלשונית "שליחת התלוש" (חלק ${m.part} מתוך ${m.parts}). לא לסגור אותה עד שהשליחה מסתיימת.`,
     done: () => "הקבצים נשלחו. הדוח יהיה מוכן בתוך כמה ימים, בקישור שבדף הזה. את לשונית השליחה אפשר לסגור. את הדף הזה כדאי לשמור.",
     failed: () => "השליחה לא הושלמה. חזרי ללשונית \"שליחת התלוש\" ולחצי \"נסי שוב\".",
+    cancelled: () => "השליחה בוטלה, והקישור בדף הזה לא יוביל לדוח. אפשר לסגור את הדף. בשליחה חדשה ייווצר קישור חדש.",
   };
   /* Reached from the sending page itself, after the files went out. */
   if (new URLSearchParams(global.location.search).get("sent") === "1") $("send-state").textContent = STATES.done();
@@ -32,9 +33,11 @@
       const m = e.data || {};
       if (m.caseId !== parsed.caseId || !STATES[m.state]) return;
       $("send-state").textContent = STATES[m.state](m);
+      if (m.state === "cancelled") cancelled = true;
     };
   }
 
-  /* Closing it by mistake asks first. */
-  global.addEventListener("beforeunload", (e) => { e.preventDefault(); e.returnValue = ""; });
+  /* Closing it by mistake asks first, unless the sending was cancelled and the link leads nowhere. */
+  let cancelled = false;
+  global.addEventListener("beforeunload", (e) => { if (!cancelled) { e.preventDefault(); e.returnValue = ""; } });
 })(window);

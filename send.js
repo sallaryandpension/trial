@@ -88,6 +88,7 @@
     $("retry").hidden = true;
     $("back").hidden = true; // Leaving mid-send would cut the upload. A failure brings it back below.
     $("saved").disabled = true;
+    $("cancel-box").hidden = true;
     $("progress").hidden = false;
     $("progress").max = blobs.length;
     try {
@@ -117,6 +118,8 @@
       say(known || "השליחה לא הושלמה. החלקים שכבר נשלחו נשמרו, ואפשר לנסות שוב.", true);
       $("retry").hidden = !!known;
       $("back").hidden = false;
+      describe();
+      $("cancel-box").hidden = false;
     }
   }
 
@@ -132,10 +135,42 @@
     }
     const made = C.makeCase();
     session = Object.assign(made, { link: reportLink(made.caseId, made.reportKey) });
-    const megabytes = blobs.reduce((sum, b) => sum + b.size, 0) / (1024 * 1024);
-    const parts = blobs.length === 1 ? "" : `, ב-${blobs.length} חלקים`;
-    $("summary").textContent = `הקובץ מוכן: ${megabytes.toFixed(1)}MB${parts}. הוא יוצפן לפני שהוא יוצא מהמחשב.`;
+    describe();
     showLink();
+  }
+
+  /* What is about to go, by kind, and the buttons to take a wrong file out before anything is sent. */
+  const NAMES = { payslip: "תלושים", pension: "דוח מהקופה" };
+  function describe() {
+    const megabytes = blobs.reduce((sum, b) => sum + b.size, 0) / (1024 * 1024);
+    const kinds = [...new Set(blobs.map((b) => b.kind || "payslip"))];
+    const what = kinds.map((k) => NAMES[k] || "קובץ").join(" ו");
+    const parts = blobs.length === 1 ? "" : `, ב-${blobs.length} חלקים`;
+    $("summary").textContent = `מוכן לשליחה: ${what}, ${megabytes.toFixed(1)}MB${parts}. הקבצים יוצפנו לפני שהם יוצאים מהמחשב.`;
+    const both = kinds.length > 1 && !uploadToken;   // once sending began, the number of parts is fixed
+    $("drop-pension").hidden = !both;
+    $("drop-payslip").hidden = !both;
+  }
+
+  function dropKind(kind) {
+    const name = NAMES[kind];
+    if (!global.confirm(`להסיר את ה${name} מהשליחה? ${kind === "pension" ? "התלושים" : "הדוח מהקופה"} יישלח לבד.`)) return;
+    blobs = blobs.filter((b) => (b.kind || "payslip") !== kind);
+    describe();
+    say(`ה${name} הוסר. אפשר לשלוח את השאר, או לבטל.`);
+  }
+
+  /* Nothing has gone yet, or a sending broke off: either way she can stop. The entry code is kept until sending
+     begins, so a cancel before that needs no new code. */
+  function cancel() {
+    const started = !!uploadToken;
+    const text = started
+      ? "לבטל? חלקים שכבר נשלחו יימחקו מהשרת בעצמם תוך יומיים. קוד הכניסה כבר נוצל, ולשליחה חדשה צריך קוד חדש."
+      : "לבטל את השליחה? שום דבר לא נשלח. הקבצים יימחקו מהדפדפן, ותחזרי לבחירת הקובץ. קוד הכניסה נשאר בתוקף.";
+    if (!global.confirm(text)) return;
+    tell("cancelled");
+    blobs = [];
+    global.location.href = "blank.html";
   }
 
   /* Once she says she saved the link, a separate page with the link and its QR code opens, to be left open. */
@@ -159,6 +194,9 @@
     if ($("saved").checked) openKeep();
   });
   $("send").addEventListener("click", run);
+  $("cancel").addEventListener("click", cancel);
+  $("drop-pension").addEventListener("click", () => dropKind("pension"));
+  $("drop-payslip").addEventListener("click", () => dropKind("payslip"));
   $("retry").addEventListener("click", run);
   $("download").addEventListener("click", saveAsText);
   $("copy").addEventListener("click", async () => {

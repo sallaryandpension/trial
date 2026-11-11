@@ -50,6 +50,14 @@
     <p id="summary"></p>
     <p class="hint">ההצפנה והשליחה עשויות לקחת כמה דקות, ויותר בקובץ גדול או בחיבור איטי. לא לסגור את הלשונית עד שמופיע "נשלח".</p>
     <button id="send" type="button" disabled>הצפנה ושליחה</button>
+    <div id="cancel-box">
+      <p class="hint">בחרת קובץ לא נכון? אפשר להוציא אותו או לבטל, כל עוד לא לחצת "הצפנה ושליחה".</p>
+      <div class="actions">
+        <button id="drop-payslip" type="button" hidden>הסרת התלושים מהשליחה</button>
+        <button id="drop-pension" type="button" hidden>הסרת הדוח מהקופה מהשליחה</button>
+        <button id="cancel" type="button">ביטול השליחה</button>
+      </div>
+    </div>
     <progress id="progress" value="0" max="1" hidden></progress>
     <p id="status" role="status" aria-live="polite"></p>
     <button id="retry" type="button" hidden>נסי שוב</button>

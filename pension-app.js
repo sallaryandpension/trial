@@ -396,7 +396,17 @@
       const skip = document.createElement("a");
       skip.href = hasTicket() ? "send.html" : "index.html?next=send";
       skip.textContent = "אין לי דוח מהקופה: שליחת התלושים בלבד";
-      $("waiting").append(skip);
+      /* The payslips were the wrong file: they are dropped here, and only the report goes. */
+      const drop = document.createElement("button");
+      drop.type = "button";
+      drop.className = "secondary";
+      drop.textContent = "הסרת התלושים הממתינים";
+      drop.addEventListener("click", async () => {
+        if (!global.confirm("להסיר את התלושים שהכנת? הם יימחקו מהדפדפן, ורק הדוח מהקופה יישלח.")) return;
+        await global.Handoff.clear();
+        $("waiting").textContent = "התלושים הוסרו. יישלח רק הדוח מהקופה.";
+      });
+      $("waiting").append(skip, " · ", drop);
       $("waiting").hidden = false;
     }
   }).catch(() => {});
