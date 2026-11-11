@@ -70,10 +70,11 @@
 
   /* The whole path. Refuses rather than guesses: a scanned page, a page with no readable text but with print on it,
      or an ID number that can't be found in the file at all, which means the text can't be trusted. */
-  async function run(files, input, onProgress) {
+  async function run(files, input, onProgress, options) {
+    const payslip = !!(options && options.doc === "payslip");
     const { docs, pages } = await read(files);
     try {
-      const decision = P.decide(pages, input);
+      const decision = P.decide(pages, input, options);
       if (decision.refused) return { refused: decision.refused, pages: pages.length, file: decision.refused.page ? pages[decision.refused.page - 1].file : null };
       const out = [];
       for (const [i, p] of pages.entries()) {
@@ -89,18 +90,21 @@
         await page.render({ canvasContext: ctx, viewport: vp, intent: "print" }).promise;
         page.cleanup();
         const textChars = p.items.reduce((s, it) => s + it.str.replace(/\s/g, "").length, 0);
-        if (textChars < 20 && ink(ctx, canvas.width, canvas.height) > 0.01) {
+        const noText = textChars < 20 && ink(ctx, canvas.width, canvas.height) > 0.01;
+        if (noText && !payslip) {
           return { refused: { reason: "no-text", page: i + 1 }, file: p.file, pages: pages.length };
         }
         /* The page is kept as drawn, on this device only, so that a box she cancels shows what is under it. Our boxes
-           are a suggestion she can switch off, except the ones over what she typed herself. */
+           are a suggestion she can switch off, except the ones over what she typed herself. A payslip page with no
+           readable text gets no suggestion at all; it is marked, and she blacks it out herself. */
         const clean = await toJpeg(canvas);
-        const boxes = decision.pages[i].boxes.map((b) => Object.assign({}, b, { on: true, locked: LOCKED.has(b.why) }));
+        const unreadable = payslip && (noText || !!decision.pages[i].unreadable);
+        const boxes = unreadable ? [] : decision.pages[i].boxes.map((b) => Object.assign({}, b, { on: true, locked: LOCKED.has(b.why) }));
         out.push({ clean, pixelWidth: canvas.width, pixelHeight: canvas.height, width: p.size.width, height: p.size.height,
-          boxes, marks: [], file: p.file });
+          boxes, marks: [], file: p.file, unreadable });
         canvas.width = canvas.height = 0;
       }
-      return { pages: out, known: decision.known, typed: decision.typed };
+      return { pages: out, known: decision.known, typed: decision.typed, idMissing: !!decision.idMissing };
     } finally {
       for (const d of docs) await d.destroy();
     }
@@ -150,6 +154,15 @@
   const history = [];   // what she did, in order: { mark: { page, el } } or { box: { page, index, el } }
   const say = (text, error) => { $("status").textContent = text; $("status").classList.toggle("error", !!error); };
   const hasTicket = () => { try { return !!global.sessionStorage.getItem("ticket"); } catch (e) { return false; } };
+
+  /* The same page serves a payslip the template didn't recognise (pension.html?doc=payslip): the payslip wording,
+     the payslip labels, nothing refused, and the result goes on as payslips. */
+  const DOC = new URLSearchParams(global.location.search).get("doc") === "payslip" ? "payslip" : "pension";
+  document.querySelectorAll("[data-doc]").forEach((el) => { el.hidden = el.dataset.doc !== DOC; });
+  if (DOC === "payslip") {
+    document.title = "תלוש בלי פרטים מזהים";
+    $("want-pension").checked = new URLSearchParams(global.location.search).get("pension") === "1";
+  }
 
   function terms() {
     return {
@@ -221,6 +234,13 @@
   function sheet(p, index) {
     const wrap = document.createElement("div");
     wrap.className = "sheet";
+    if (p.unreadable) {
+      /* No suggestion here: the page has no text we can read. */
+      const note = document.createElement("p");
+      note.className = "notice";
+      note.textContent = `עמוד ${index + 1}: לא הצלחנו לקרוא את הטקסט בעמוד הזה, ולכן אין בו הצעה. סמני בעצמך כל פרט מזהה.`;
+      $("pages").append(note);
+    }
     const img = document.createElement("img");
     const url = URL.createObjectURL(p.clean);
     urls.push(url);
@@ -260,12 +280,13 @@
       + (off ? ` ביטלת ${off}.` : "") + (marks ? ` סימנת בעצמך ${marks}.` : "");
   }
 
-  function showResult(known, typed) {
+  function showResult(known, typed, idMissing) {
     clearShown();
     pages.forEach((p, i) => $("pages").append(sheet(p, i)));
     setMarking(false);
-    $("unknown").hidden = known;
+    $("unknown").hidden = known || DOC === "payslip";
     $("untyped").hidden = typed;
+    $("id-missing").hidden = !idMissing;
     $("summary").textContent = summary();
     unconfirm();
     $("no-ticket").hidden = hasTicket();
@@ -287,7 +308,7 @@
     const several = files.length > 1;
     say("קוראים את הקובץ...");
     try {
-      const res = await run(files, terms(), (n, t) => say(`מעבדים עמוד ${n} מתוך ${t}. לא לסגור את הלשונית.`));
+      const res = await run(files, terms(), (n, t) => say(`מעבדים עמוד ${n} מתוך ${t}. לא לסגור את הלשונית.`), { doc: DOC });
       input.value = "";
       if (res.refused) {
         const r = res.refused;
@@ -296,7 +317,7 @@
         return;
       }
       pages = res.pages;
-      showResult(res.known, res.typed);
+      showResult(res.known, res.typed, res.idMissing);
       say("ההצעה שלנו מוכנה, ושום דבר לא נשלח. עברי על כל העמודים ותקני לפני שממשיכים.");
     } catch (e) {
       input.value = "";
@@ -338,14 +359,21 @@
     const list = await finalPages(pages);
     const a = document.createElement("a");
     a.href = URL.createObjectURL(B.build(list));
-    a.download = "דוח_קופה_בלי_פרטים_מזהים.pdf";
+    a.download = DOC === "payslip" ? "תלוש_בלי_פרטים_מזהים.pdf" : "דוח_קופה_בלי_פרטים_מזהים.pdf";
     a.click();
     URL.revokeObjectURL(a.href);
   });
   $("next").addEventListener("click", async () => {
     $("next").disabled = true;
     try {
-      await global.Handoff.add(parts(await finalPages(pages)));
+      const made = parts(await finalPages(pages));
+      if (DOC === "payslip") {
+        /* Payslips start the case afresh; with the pension check she goes on to the fund's report next. */
+        await global.Handoff.put(made.map((blob) => ({ blob, kind: "payslip" })));
+        if ($("want-pension").checked) { global.location.href = "pension.html"; return; }
+      } else {
+        await global.Handoff.add(made.map((blob) => ({ blob, kind: "pension" })));
+      }
       /* Without an entry code the file waits in the browser while she enters it, then she goes on to sending. */
       global.location.href = hasTicket() ? "send.html" : "index.html?next=send";
     } catch (e) {
@@ -354,10 +382,21 @@
     }
   });
 
+  const nextLabel = () => {
+    $("next").textContent = DOC === "payslip" && $("want-pension").checked ? "המשך לדוח מהקופה" : "שליחה אלינו לבדיקה";
+  };
+  $("want-pension").addEventListener("change", nextLabel);
+  nextLabel();
+
   /* Payslips made on the payslip page wait here, and are sent together with this report. */
-  global.Handoff.count().then((n) => {
+  if (DOC === "pension") global.Handoff.count().then((n) => {
     if (n) {
-      $("waiting").textContent = `התלושים שהכנת ממתינים (${n === 1 ? "חלק אחד" : `${n} חלקים`}), ויישלחו יחד עם הדוח הזה.`;
+      $("waiting").textContent = `התלושים שהכנת ממתינים (${n === 1 ? "חלק אחד" : `${n} חלקים`}), ויישלחו יחד עם הדוח הזה, לאותו תיק. `;
+      /* She ticked the pension check but has no report from the fund after all: the payslips go on their own. */
+      const skip = document.createElement("a");
+      skip.href = hasTicket() ? "send.html" : "index.html?next=send";
+      skip.textContent = "אין לי דוח מהקופה: שליחת התלושים בלבד";
+      $("waiting").append(skip);
       $("waiting").hidden = false;
     }
   }).catch(() => {});

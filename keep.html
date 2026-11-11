@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex, nofollow">
+<!-- Opened by the sending page so the report link stays in front of her. It holds the link only after the #, which
+     the browser never sends anywhere, and it makes no network call of its own. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'none'; img-src 'self'; form-action 'none'; base-uri 'none'">
+<title>לא לסגור: הקישור לדוח שלך</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<section class="draft">אתר ניסיון של המפעיל. לא לשימוש של מורות. הנוסח עוד לא אושר בידי עורך דין, והאתר יורד בסוף הניסיון.</section>
+<header>
+  <div class="brandbar"><img src="logo.svg" alt="" width="34" height="34"><span>בדיקת תלוש למורים</span></div>
+  <h1>לא לסגור את הדף הזה</h1>
+  <p>זה הקישור לדוח שלך. בלעדיו אי אפשר להגיע לדוח, ואנחנו לא יכולים לשחזר אותו.</p>
+</header>
+<main>
+  <section id="bad" hidden>
+    <h2>הקישור לא תקין</h2>
+    <p>הדף נפתח בלי קישור לדוח. הקישור מופיע בעמוד השליחה.</p>
+  </section>
+
+  <section id="keep" hidden>
+    <p class="notice" id="send-state" role="status" aria-live="polite">כדי לשלוח את הקבצים, חזרי ללשונית "שליחת התלוש" ולחצי "הצפנה ושליחה". את הדף הזה משאירים פתוח.</p>
+    <h2>הקישור לדוח</h2>
+    <p class="link-box" id="link" dir="ltr"></p>
+    <div class="actions">
+      <button id="copy" type="button">העתקת הקישור</button>
+      <a class="button" id="open" href="#" target="_blank" rel="noopener">פתיחת הדוח (כשיהיה מוכן)</a>
+    </div>
+    <p id="copied" role="status" aria-live="polite"></p>
+    <canvas id="qr" class="qr" role="img" aria-label="קוד QR של קישור הדוח"></canvas>
+    <p class="hint">אפשר לצלם את הקוד בטלפון. כדאי גם להוסיף את הדף למועדפים (Ctrl+D), כדי למצוא אותו גם אחרי שהמחשב ייסגר.</p>
+  </section>
+  <p class="footer-links"><a href="privacy.html">אבטחה ופרטיות</a> · <a href="terms.html">תנאי שימוש</a> · <a href="delete.html">מחיקה ובקשות</a></p>
+</main>
+<script src="crypto-box.js"></script>
+<script src="vendor/qrcode.js"></script>
+<script src="qr-draw.js"></script>
+<script src="keep.js"></script>
+</body>
+</html>

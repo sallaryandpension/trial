@@ -60,12 +60,17 @@
   const partLabel = (caseId, part, parts) => encoder.encode(`TCS1|${caseId}|${part}|${parts}`);
   const reportLabel = (caseId) => encoder.encode(`TCR1|${caseId}`);
 
-  /* pdf: Uint8Array. publicKey: the operator's RSA public key as JWK. */
-  async function sealPart({ pdf, caseId, reportKey, part, parts, publicKey }) {
+  /* What a part holds, so the operator's tool keeps the payslips and the fund's report as separate files. */
+  const KINDS = ["payslip", "pension"];
+
+  /* pdf: Uint8Array. publicKey: the operator's RSA public key as JWK. kind: one of KINDS, or left out. */
+  async function sealPart({ pdf, caseId, reportKey, part, parts, publicKey, kind }) {
     const rsa = await subtle.importKey("jwk", publicKey, { name: "RSA-OAEP", hash: "SHA-256" }, false, ["wrapKey"]);
     const key = await subtle.generateKey({ name: "AES-GCM", length: 256 }, true, ["encrypt"]);
     const wrapped = new Uint8Array(await subtle.wrapKey("raw", key, rsa, { name: "RSA-OAEP" }));
-    const header = encoder.encode(JSON.stringify({ v: 1, caseId, reportKey, part, parts }));
+    const head = { v: 1, caseId, reportKey, part, parts };
+    if (KINDS.includes(kind)) head.kind = kind;
+    const header = encoder.encode(JSON.stringify(head));
     const length = new Uint8Array(4);
     new DataView(length.buffer).setUint32(0, header.length);
     const iv = randomBytes(IV_BYTES);

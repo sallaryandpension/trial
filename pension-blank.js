@@ -30,8 +30,14 @@
   ].map(norm);
   /* A letter's address block: "לכבוד" and the short lines right under it. */
   const ADDRESSEE = norm("לכבוד");
+  /* For a payslip that isn't in the known template: labels of the identifying fields on payslips. */
+  const PAYSLIP_LABELS = [
+    "שם העובד", "שם עובד", "מספר עובד", "מס' עובד", "מס עובד", "מספר זהות", "ת.ז", "כתובת", "בנק", "סניף",
+    "מספר חשבון", "חשבון בנק", "שם בית הספר", "שם בית ספר", "שם המוסד", "שם מוסד", "סמל מוסד", "תאריך לידה",
+    "מצב משפחתי", "בן/בת זוג", "בן זוג", "בת זוג", "תאריך תחילת עבודה", "פקיד שכר", "פקידת שכר", "טלפון",
+  ].map(norm);
   /* "ת.ז." normalises to "ת.ז." and would match inside ordinary words rarely; the short ones need a word edge. */
-  const SHORT = new Set(["ת.ז.", "מען", "מיקוד", 'דוא"ל'].map(norm));
+  const SHORT = new Set(["ת.ז.", "ת.ז", "מען", "מיקוד", 'דוא"ל', "בנק", "סניף"].map(norm));
 
   /* From the start of these sections to their end, everything goes: the form to update personal details holds the
      address, phones and the details of the spouse and of the children, who never agreed to anything. */
@@ -186,7 +192,8 @@
   }
 
   /* One page. state carries an open section into the next page. Returns { boxes, labels, idFound, text }. */
-  function page(items, size, terms, state) {
+  function page(items, size, terms, state, labelList) {
+    const LABELS = labelList || LINE_LABELS;
     const { width, height } = size;
     const lines = toLines(items);
     const boxes = [];
@@ -201,7 +208,7 @@
         blockFrom = line.y0;
         labels += 1;
       }
-      const found = isDepositHeader(line) ? [] : LINE_LABELS.filter((l) => lineHas(line, l));
+      const found = isDepositHeader(line) ? [] : LABELS.filter((l) => lineHas(line, l));
       if (found.length) {
         if (found.some((l) => l !== ADDRESSEE)) labels += 1;   // "לכבוד" alone doesn't make it the circular's report
         boxes.push(box(line.x0, line.y0, line.x1, line.y1, "שורה עם פרט מזהה"));
@@ -275,26 +282,34 @@
     return out;
   }
 
-  /* pages: [{ items, size, images }] for one or more files, in order. Returns per-page boxes and the verdict. */
-  function decide(pages, input) {
+  /* pages: [{ items, size, images }] for one or more files, in order. Returns per-page boxes and the verdict.
+     options.doc "payslip": a payslip the template didn't recognise. Its labels are used, and nothing is refused:
+     a page with no readable text gets no suggestion and is marked, so she blacks it out herself. */
+  function decide(pages, input, options) {
+    const payslip = !!(options && options.doc === "payslip");
+    const labelList = payslip ? [...PAYSLIP_LABELS, ...LINE_LABELS] : LINE_LABELS;
     const terms = prepareTerms(input);
     const state = { inBlock: false };
     let labels = 0, idFound = false, scanned = 0;
     const result = pages.map((p, i) => {
       if (p.newFile) state.inBlock = false;
-      const r = page(p.items, p.size, terms, state);
+      const r = page(p.items, p.size, terms, state, labelList);
       labels += r.labels;
       idFound = idFound || r.idFound;
       const looksScanned = r.text < 20 && (p.images || []).some((b) => (b.x1 - b.x0) * (b.y1 - b.y0) > p.size.width * p.size.height * 0.4);
       if (looksScanned) scanned = scanned || i + 1;
+      /* A scanned payslip page is one big picture: blacking out the picture would hide the whole page. */
+      if (payslip && looksScanned) return { boxes: [], labels: 0, unreadable: true };
       return { boxes: [...r.boxes, ...(p.images || [])], labels: r.labels };
     });
+    const typed = !!(terms.id || terms.words.length || terms.digits.length);
+    if (payslip) return { pages: result, labels, refused: null, known: labels > 0, typed, idMissing: !!terms.id && !idFound };
     let refused = null;
     if (scanned) refused = { reason: "scanned", page: scanned };
     /* Typing the ID is optional. When she did type it and it isn't in the file, the file's text can't be read
        reliably, so the suggestion can't be trusted either. */
     else if (terms.id && !idFound) refused = { reason: "id-not-found" };
-    return { pages: result, labels, refused, known: labels > 0, typed: !!(terms.id || terms.words.length || terms.digits.length) };
+    return { pages: result, labels, refused, known: labels > 0, typed };
   }
 
   global.PensionBlank = { norm, validId, hasId, patternOf, prepareTerms, termHit, toLines, page, imageBoxes, decide };

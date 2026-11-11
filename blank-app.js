@@ -83,6 +83,7 @@
     const list = await finalPages(pages);
     return S.parts(list).map((indexes) => B.build(indexes.map((i) => list[i])));
   };
+  const labelled = (blobs) => blobs.map((blob) => ({ blob, kind: "payslip" }));
 
   global.BlankApp = { process, processFiles, finalPages, makePdf, makeParts };
 
@@ -118,7 +119,7 @@
 
   function unconfirm() {
     $("confirm").checked = false;
-    ["save", "next", "add-pension"].forEach((id) => { $(id).disabled = true; });
+    ["save", "next"].forEach((id) => { $(id).disabled = true; });
   }
 
   function setMarking(on) {
@@ -165,8 +166,6 @@
     $("save").disabled = true;
     $("next").disabled = true;
     $("next").hidden = false;
-    $("add-pension").disabled = true;
-    $("add-pension").hidden = false;
     $("no-ticket").hidden = hasTicket();
     $("results").hidden = false;
   }
@@ -176,14 +175,20 @@
     pages = [];
     clearShown();
     $("results").hidden = true;
+    $("unknown-doc").hidden = true;
     if (!files.length) return;
     const several = files.length > 1;
     try {
       const res = await processFiles(files, (f, total, n, t) => say(
         `${several ? `קובץ ${f} מתוך ${total}, ` : ""}מעבדים עמוד ${n} מתוך ${t}. בקובץ ארוך זה עשוי לקחת כמה דקות. לא לסגור את הלשונית.`));
       if (res.refused) {
+        /* Not refused any more: the teacher goes on to the page that suggests what to hide, and she completes it. */
         const where = several ? `בקובץ "${res.file}", עמוד ${res.refused}` : `עמוד ${res.refused}`;
-        say(`${where} לא תואם לתבנית שאנחנו מכירים, ולכן לא נוצר קובץ. כך אנחנו מוודאים שפרט מזהה לא יישאר גלוי.`, true);
+        say("");
+        $("unknown-where").textContent = where;
+        $("unknown-go").href = "pension.html?doc=payslip";
+        $("unknown-doc").hidden = false;
+        $("unknown-go").focus();
         return;
       }
       pages = res.pages.map((p) => Object.assign(p, { marks: [] }));
@@ -205,19 +210,11 @@
   $("confirm").addEventListener("change", () => {
     $("save").disabled = !$("confirm").checked;
     $("next").disabled = !$("confirm").checked;
-    $("add-pension").disabled = !$("confirm").checked;
   });
-  /* The payslips wait in the browser's database while she blanks the fund's report on the next page. */
-  $("add-pension").addEventListener("click", async () => {
-    $("add-pension").disabled = true;
-    try {
-      await global.Handoff.put(await makeParts(pages));
-      global.location.href = "pension.html";
-    } catch (e) {
-      say("לא הצלחנו לשמור את התלושים בדפדפן. ייתכן שהדפדפן במצב פרטי.", true);
-      $("add-pension").disabled = false;
-    }
-  });
+  const nextLabel = () => {
+    $("next").textContent = $("want-pension").checked ? "המשך לדוח מהקופה" : "שליחה אלינו לבדיקה";
+  };
+  $("want-pension").addEventListener("change", nextLabel);
   $("mark").addEventListener("click", () => setMarking(!marking));
   $("undo").addEventListener("click", () => {
     const i = history.pop();
@@ -235,11 +232,12 @@
   $("next").addEventListener("click", async () => {
     $("next").disabled = true;
     try {
-      await global.Handoff.put(await makeParts(pages));
-      /* Without an entry code the file waits in the browser while she enters it, then she goes on to sending. */
-      global.location.href = hasTicket() ? "send.html" : "index.html?next=send";
+      await global.Handoff.put(labelled(await makeParts(pages)));
+      /* With the pension check, the payslips wait in the browser while she blanks the fund's report; that page
+         then sends both to one case. Without an entry code the file waits while she enters it. */
+      global.location.href = $("want-pension").checked ? "pension.html" : (hasTicket() ? "send.html" : "index.html?next=send");
     } catch (e) {
-      say("לא הצלחנו להעביר את הקובץ לעמוד השליחה. ייתכן שהדפדפן במצב פרטי.", true);
+      say("לא הצלחנו להעביר את הקובץ לשלב הבא. ייתכן שהדפדפן במצב פרטי.", true);
       $("next").disabled = false;
     }
   });

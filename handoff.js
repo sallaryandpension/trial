@@ -27,11 +27,13 @@
 
   const clear = () => run("readwrite", (store) => { store.clear(); });
 
-  /* parts: array of Blob, each one a complete PDF. */
+  /* A part is a Blob (a complete PDF), or { blob, kind } to say whether it holds payslips or the fund's report. */
+  const row = (part, index, at) => (part instanceof Blob ? { index, blob: part, at } : { index, blob: part.blob, kind: part.kind, at });
+
   const put = (parts) => run("readwrite", (store) => {
     store.clear();
     const at = Date.now();
-    parts.forEach((blob, index) => store.put({ index, blob, at }));
+    parts.forEach((part, index) => store.put(row(part, index, at)));
   });
 
   /* Adds after what is already waiting: the pension report joins the payslips made a moment ago. */
@@ -40,7 +42,7 @@
     keys.onsuccess = () => {
       const first = keys.result.length ? Math.max(...keys.result) + 1 : 0;
       const at = Date.now();
-      parts.forEach((blob, i) => store.put({ index: first + i, blob, at }));
+      parts.forEach((part, i) => store.put(row(part, first + i, at)));
     };
   });
 
@@ -61,7 +63,8 @@
     tx.oncomplete = () => {
       db.close();
       const fresh = rows.filter((r) => Date.now() - r.at < MAX_AGE).sort((a, b) => a.index - b.index);
-      resolve(fresh.map((r) => r.blob));
+      /* Blobs, as before; each also carries its kind, when it has one. */
+      resolve(fresh.map((r) => { if (r.kind) r.blob.kind = r.kind; return r.blob; }));
     };
     tx.onabort = tx.onerror = () => { db.close(); reject(tx.error); };
   }));

@@ -41,7 +41,8 @@
     <p id="copied" role="status" aria-live="polite"></p>
     <canvas id="qr" class="qr" role="img" aria-label="קוד QR של קישור הדוח"></canvas>
     <p class="hint">אפשר לצלם את הקוד בטלפון ולשמור אותו.</p>
-    <label class="check"><input type="checkbox" id="saved"> שמרתי את הקישור</label>
+    <label class="check"><input type="checkbox" id="saved"> <span>שמרתי את הקישור. <span class="hint">כשתסמני, ייפתח דף נפרד עם הקישור וקוד ה-QR. משאירים אותו פתוח, וחוזרים ללשונית הזו כדי לשלוח.</span></span></label>
+    <p class="notice" id="keep-blocked" hidden>הדפדפן לא פתח דף נפרד. זה בסדר: אחרי השליחה הדף הזה יעבור בעצמו לדף עם הקישור וקוד ה-QR. עד אז הקישור מופיע כאן למעלה.</p>
   </section>
 
   <section id="step-send" hidden>
@@ -57,6 +58,7 @@
   <section id="done" hidden>
     <h2>נשלח</h2>
     <p>הקובץ התקבל. הדוח יהיה מוכן בתוך כמה ימים. כדי לראות אותו, היכנסי דרך הקישור ששמרת.</p>
+    <p><a id="done-keep" class="button" href="#">לדף עם הקישור וקוד ה-QR</a></p>
   </section>
   <p class="footer-links"><a href="privacy.html">אבטחה ופרטיות</a> · <a href="terms.html">תנאי שימוש</a> · <a href="accessibility.html">הצהרת נגישות</a> · <a href="delete.html">מחיקה ובקשות</a></p>
 </main>

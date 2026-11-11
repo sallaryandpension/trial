@@ -68,6 +68,7 @@
     const pdf = new Uint8Array(await blobs[number - 1].arrayBuffer());
     const sealed = await C.sealPart({
       pdf, caseId: session.caseId, reportKey: session.reportKey, part: number, parts: blobs.length, publicKey: global.SITE.publicKey,
+      kind: blobs[number - 1].kind,
     });
     return attempt("uploadPart", { uploadToken, part: number, data: C.toBase64(sealed) });
   }
@@ -98,15 +99,20 @@
       }
       for (; nextPart <= blobs.length; nextPart++) {
         say(`מצפינים ושולחים חלק ${nextPart} מתוך ${blobs.length}. זה עשוי לקחת כמה דקות. לא לסגור את הלשונית ולא לעבור עמוד.`);
+        tell("sending", { part: nextPart, parts: blobs.length });
         $("progress").value = nextPart - 1;
         await sendPart(nextPart);
       }
       $("progress").value = blobs.length;
+      tell("done");
       blobs = [];
       $("step-code").hidden = true;
       $("step-send").hidden = true;
       $("done").hidden = false;
+      $("done-keep").href = keepUrl();
+      if (!keepOpened) global.location.href = `${keepUrl().split("#")[0]}?sent=1#${session.caseId}.${session.reportKey}`;
     } catch (e) {
+      tell("failed");
       const known = FAILURES[e.message];
       say(known || "השליחה לא הושלמה. החלקים שכבר נשלחו נשמרו, ואפשר לנסות שוב.", true);
       $("retry").hidden = !!known;
@@ -132,7 +138,26 @@
     showLink();
   }
 
-  $("saved").addEventListener("change", () => { $("send").disabled = !$("saved").checked; });
+  /* Once she says she saved the link, a separate page with the link and its QR code opens, to be left open. */
+  let keepOpened = false;
+  const keepUrl = () => new URL(`keep.html#${session.caseId}.${session.reportKey}`, global.location.href).href;
+  function openKeep() {
+    if (keepOpened || !session) return;
+    /* noopener: the new tab can't reach back into this one. If the browser won't open a tab (a phone app's built-in
+       browser, say), this page stays as it is and goes to the link page itself once the files are sent. */
+    const tab = global.open(keepUrl(), "_blank");
+    keepOpened = !!tab;
+    $("keep-blocked").hidden = keepOpened;
+  }
+
+  /* Tells the keep page how the sending goes. Same browser only; nothing leaves the device. */
+  const channel = global.BroadcastChannel ? new global.BroadcastChannel("send-status") : null;
+  const tell = (state, extra) => { if (channel && session) channel.postMessage(Object.assign({ caseId: session.caseId, state }, extra)); };
+
+  $("saved").addEventListener("change", () => {
+    $("send").disabled = !$("saved").checked;
+    if ($("saved").checked) openKeep();
+  });
   $("send").addEventListener("click", run);
   $("retry").addEventListener("click", run);
   $("download").addEventListener("click", saveAsText);
