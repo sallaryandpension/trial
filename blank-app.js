@@ -16,7 +16,15 @@
     await page.render({ canvasContext: ctx, viewport: vp, intent: "print" }).promise;
     const size = page.getViewport({ scale: 1 });
     const read = ([x0, y0, x1, y1]) => ctx.getImageData(x0 * SCALE, y0 * SCALE, (x1 - x0) * SCALE, (y1 - y0) * SCALE).data;
-    const found = Z.identify(size.width, size.height, read);
+    let found = Z.identify(size.width, size.height, read);
+    if (!found) {
+      /* Another page size, such as the portal's own file: the side from the text, the place from the blue headings. */
+      const side = Z.sideFromText((await page.getTextContent()).items.map((it) => it.str));
+      if (side) {
+        const share = Z.blueMap(ctx.getImageData(0, 0, canvas.width, canvas.height).data, canvas.width, canvas.height, SCALE);
+        found = Z.identify(size.width, size.height, read, { share, side });
+      }
+    }
     if (!found) return { canvas: null, width: size.width, height: size.height, found: null };
     ctx.fillStyle = "#ffffff";
     for (const [, [x0, y0, x1, y1]] of found.zones) ctx.fillRect(x0 * SCALE, y0 * SCALE, (x1 - x0) * SCALE, (y1 - y0) * SCALE);
@@ -44,7 +52,7 @@
       const jpeg = await toJpeg(r.canvas);
       pages.push({
         jpeg, size: jpeg.size, side: r.found.side, pixelWidth: r.canvas.width, pixelHeight: r.canvas.height,
-        width: r.width, height: r.height, zones: r.found.zones.length,
+        width: r.width, height: r.height, zones: r.found.zones.length, shift: r.found.shift || null,
       });
       r.canvas.width = r.canvas.height = 0;
     }

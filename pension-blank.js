@@ -172,8 +172,10 @@
         const heads = near.flatMap((l) => l.items).filter((o) => o !== it);
         const left = heads.filter((o) => o.x1 <= it.x0 + 0.5).reduce((m, o) => Math.max(m, o.x1), 0);
         const right = heads.filter((o) => o.x0 >= it.x1 - 0.5).reduce((m, o) => Math.min(m, o.x0), width);
-        const x0 = left ? (left + it.x0) / 2 : 0;
-        const x1 = right < width ? (it.x1 + right) / 2 : width;
+        /* Between the middles of the gaps to the neighbouring headings; at the edge of the table, a little beyond the
+           heading, not to the edge of the page. Longer names are caught piece by piece below. */
+        const x0 = left ? (left + it.x0) / 2 : Math.max(0, it.x0 - 40);
+        const x1 = right < width ? (it.x1 + right) / 2 : Math.min(width, it.x1 + 30);
         const top = Math.max(...near.map((l) => l.y1));
         const end = lines.find((l) => l.y0 > top && l.texts.some((tx) => tx.startsWith(TOTAL) || tx.endsWith(reverse(TOTAL))));
         const bottom = end ? end.y0 - PAD * 2 : height;
@@ -189,6 +191,64 @@
       }
     });
     return out;
+  }
+
+  /* Pieces of a line that sit close together, as one word or one value printed in parts. */
+  function runs(line) {
+    const sorted = line.items.slice().sort((a, b) => a.x0 - b.x0);
+    const out = [];
+    for (const it of sorted) {
+      const last = out[out.length - 1];
+      const gap = last ? it.x0 - Math.max(...last.map((o) => o.x1)) : Infinity;
+      if (last && gap < Math.max(4, line.h * 0.9)) last.push(it);
+      else out.push([it]);
+    }
+    return out;
+  }
+
+  /* The value that belongs to each label on a line. Hebrew reads right to left, so the value is to the label's left,
+     up to the next label, a wide gap, or MAX_VALUE points, about thirty characters: a name, a number or an address,
+     and not the rest of the line. A piece that holds the label and the value together is cut by its letters. */
+  const MAX_VALUE = 170;
+  function valueBoxes(line, found) {
+    const isLabelPiece = (it) => {
+      const t = norm(it.str);
+      if (!t) return false;
+      return found.some((l) => t === l || l.includes(t) || l.includes(reverse(t)) || t.includes(l) || t.includes(reverse(l)));
+    };
+    const pieces = line.items.slice().sort((a, b) => b.x1 - a.x1);   // right to left
+    const out = [];
+    const labelBoxes = [];
+    pieces.forEach((it, i) => {
+      if (!isLabelPiece(it)) return;
+      const t = norm(it.str);
+      const own = found.filter((l) => t.includes(l) || t.includes(reverse(l))).reduce((m, l) => Math.max(m, l.length), 0);
+      labelBoxes.push(it);
+      /* Label and value in one piece: the label's share of the letters is on the right; the rest is the value.
+         But when a separate piece follows, the extra words belong to a longer label ("שם סוכן/יועץ") and the
+         value is that piece. */
+      const follows = pieces.slice(i + 1).find((v) => !isLabelPiece(v));
+      const nextLabel = pieces.slice(i + 1).find(isLabelPiece);
+      const hasOwnValue = follows && (!nextLabel || follows.x1 > nextLabel.x1);
+      const colon = /\S\s*:\s*\S/.test(String(it.str));   // "שם העמית: דמיונה": the value is right here
+      if (own && t.length - own > 2 && (colon || !hasOwnValue)) {
+        const valueShare = (t.length - own) / t.length;
+        out.push(box(it.x0, it.y0, it.x0 + (it.x1 - it.x0) * valueShare, it.y1, "ערך ליד תווית"));
+        return;
+      }
+      /* The value starts at the nearest piece to the left, wherever it is (in a table it sits in the next cell), and
+         runs on while the pieces stay close, for at most MAX_VALUE points. */
+      let start = null, edge = 0;
+      for (const v of pieces.slice(i + 1)) {
+        if (isLabelPiece(v)) break;
+        if (start === null) start = v.x1;
+        else if (edge - v.x1 > Math.max(12, line.h * 1.5)) break;   // a gap: the next column, not this value
+        if (v.x1 < start - MAX_VALUE) break;
+        out.push(box(Math.max(v.x0, start - MAX_VALUE), v.y0, v.x1, v.y1, "ערך ליד תווית"));
+        edge = v.x0;
+      }
+    });
+    return { boxes: out, labels: labelBoxes };
   }
 
   /* One page. state carries an open section into the next page. Returns { boxes, labels, idFound, text }. */
@@ -211,13 +271,22 @@
       const found = isDepositHeader(line) ? [] : LABELS.filter((l) => lineHas(line, l));
       if (found.length) {
         if (found.some((l) => l !== ADDRESSEE)) labels += 1;   // "לכבוד" alone doesn't make it the circular's report
-        boxes.push(box(line.x0, line.y0, line.x1, line.y1, "שורה עם פרט מזהה"));
-        /* A line of labels only: the values are in the line below it, as in a table with the headings on top. */
+        /* Only the value next to each label, not the whole line: labels stay readable, and so does anything else on
+           the line, such as an amount. */
+        const valued = valueBoxes(line, found);
+        boxes.push(...valued.boxes);
+        /* A line of labels only: the values are in the line below it, under each label, as in a table with the
+           headings on top. */
         let rest = line.texts[0];
         for (const l of found.sort((a, b) => b.length - a.length)) rest = rest.split(l).join("");
         const next = lines[i + 1];
         if (rest.length <= 3 && next && next.y0 - line.y1 < 2 * Math.max(line.h, next.h)) {
-          boxes.push(box(next.x0, next.y0, next.x1, next.y1, "ערכים מתחת לכותרת"));
+          for (const lab of valued.labels) {
+            const span = [lab.x0 - 30, lab.x1 + 30];
+            for (const o of next.items) {
+              if (o.x1 > span[0] && o.x0 < span[1]) boxes.push(box(o.x0, o.y0, o.x1, o.y1, "ערכים מתחת לכותרת"));
+            }
+          }
         }
         if (found.includes(ADDRESSEE)) {
           let prev = line;
@@ -240,15 +309,18 @@
       const why = hit || patternOf(it.str);
       if (why) boxes.push(box(it.x0, it.y0, it.x1, it.y1, why));
     }
-    /* A value split over two pieces ("0123" "45678") is caught on the joined line too. */
+    /* A value split over pieces ("0123" "45678", or a street and its house number) is caught on runs of pieces that
+       sit close together, and only that run is blacked out, not the line. */
     for (const line of lines) {
-      const joined = line.items.slice().sort((a, b) => a.x0 - b.x0).map((it) => it.str).join("");
-      const joinedRtl = line.items.slice().sort((a, b) => b.x1 - a.x1).map((it) => it.str).join("");
-      if (terms.id && [joined, joinedRtl].some((s) => s.replace(/\D/g, "").replace(/^0+/, "").includes(terms.id))) idFound = true;
-      /* A street name and its house number are often two pieces, so a street takes the whole line. */
-      const spaced = line.items.slice().sort((a, b) => b.x1 - a.x1).map((it) => it.str).join(" ");
-      if (termHit(joined, terms) || termHit(joinedRtl, terms) || hasId(joined) || hasId(joinedRtl) || STREET.test(spaced)) {
-        boxes.push(box(line.x0, line.y0, line.x1, line.y1, "פרט מזהה בשורה"));
+      for (const run of runs(line)) {
+        const ltr = run.slice().sort((a, b) => a.x0 - b.x0).map((it) => it.str);
+        const rtl = ltr.slice().reverse();
+        const [joined, joinedRtl] = [ltr.join(""), rtl.join("")];
+        if (terms.id && [joined, joinedRtl].some((s) => s.replace(/\D/g, "").replace(/^0+/, "").includes(terms.id))) idFound = true;
+        if (termHit(joined, terms) || termHit(joinedRtl, terms) || hasId(joined) || hasId(joinedRtl) || STREET.test(rtl.join(" "))) {
+          boxes.push(box(Math.min(...run.map((o) => o.x0)), Math.min(...run.map((o) => o.y0)),
+            Math.max(...run.map((o) => o.x1)), Math.max(...run.map((o) => o.y1)), "פרט מזהה בשורה"));
+        }
       }
     }
     const text = items.map((it) => String(it.str)).join("").replace(/\s/g, "").length;
